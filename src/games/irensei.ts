@@ -45,7 +45,7 @@ export class IrenseiGame extends InARowBase {
             { uid: "pass", group: "tiebreaker" },
         ],
         categories: ["goal>align", "mechanic>place", "mechanic>capture", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
-        flags: ["multistep", "custom-colours", "rotate90"],
+        flags: ["multistep", "custom-colours", "perspective", "rotate90"],
         displays: [{uid: "hide-restrictions"}],
     };
 
@@ -722,7 +722,7 @@ export class IrenseiGame extends InARowBase {
                 E: [
                     { name: "piece-borderless", colour: "#FFF" },
                     { name: "piece-borderless", colour: 1 as playerid, opacity: 0.2 },
-                    { text: "8+" },
+                    { text: "8+", orientation: "vertical" },
                 ],
             },
             pieces: pstr,
