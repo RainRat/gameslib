@@ -46,7 +46,7 @@ export class CatchupGame extends GameBase {
             }
         ],
         categories: ["goal>score>eog", "mechanic>place", "board>shape>hex", "board>connect>hex", "components>simple>1per"],
-        flags: ["multistep", "scores", "no-moves", "custom-randomization"],
+        flags: ["scores", "no-moves", "custom-randomization"],
         variants: [
             {
                 uid: "size-6",
@@ -577,7 +577,7 @@ export class CatchupGame extends GameBase {
     }
 
     public getPlayersScores(): IScores[] {
-        return [{ name: i18next.t("apgames:status.SCORES"), scores: [this.sizes[0].join(","), this.sizes[1].join(",")] }];
+        return [{ name: i18next.t("apgames:status.GROUPSIZES"), scores: [this.sizes[0].join(","), this.sizes[1].join(",")] }];
     }
 
     public status(): string {
