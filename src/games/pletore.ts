@@ -64,8 +64,7 @@ export class PletoreGame extends GameBase {
             },
             {
                 uid: "nokomi",
-                group: "komi",
-                experimental: true
+                group: "komi"
             }
         ],
         displays: [{uid: "hide-threatened"}, {uid: "hide-influence"}, {uid: "hide-both"}],
@@ -229,7 +228,7 @@ export class PletoreGame extends GameBase {
     public getButtons(): ICustomButton[] {
         if (this.moves().includes("pass")) return [{ label: "pass", move: "pass" }];
         if (this.isButtonActive()) return [{ label: "takebutton", move: "button" }];
-        if (this.stack.length === 2) return [{ label: "acceptpie", move: "pie" }];
+        if (this.isKomiRuleActive() && this.stack.length === 2) return [{ label: "acceptpie", move: "pie" }];
         return [];
     }
 
@@ -343,7 +342,7 @@ export class PletoreGame extends GameBase {
         }
 
         if (m === "pass") {
-            if (this.stack.length === 2 || this.moves().includes("pass")) {
+            if ((this.isKomiRuleActive() && this.stack.length === 2) || this.moves().includes("pass")) {
                 result.valid = true;
                 result.complete = 1;
                 result.message = i18next.t("apgames:validation._general.VALID_MOVE");
@@ -369,7 +368,7 @@ export class PletoreGame extends GameBase {
         }
 
         if (m === "pie") {
-            if (this.stack.length === 2) {
+            if (this.isKomiRuleActive() && this.stack.length === 2) {
                 result.valid = true;
                 result.complete = 1;
                 result.message = i18next.t("apgames:validation._general.VALID_MOVE");
@@ -637,7 +636,6 @@ export class PletoreGame extends GameBase {
 
         // Build rep
         const rep: APRenderRep =  {
-            options: ["hide-star-points"],
             board: {
                 style: "vertex",
                 width: this.boardSize,
