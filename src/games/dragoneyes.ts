@@ -41,7 +41,7 @@ export class DragonEyesGame extends GameBase {
             name: "Vadrya Pokshtya",
         }],
         categories: ["goal>score>eog", "mechanic>capture", "mechanic>move", "board>shape>hex", "board>connect>hex", "components>simple>1per"],
-        flags: ["automove", "limited-pieces", "custom-buttons"],
+        flags: ["automove", "limited-pieces", "custom-buttons", "experimental"],
         variants: [{uid: "claimdraw", group: "rules"}]
     };
 
@@ -241,6 +241,8 @@ export class DragonEyesGame extends GameBase {
 
         const enemies = this.getVisibleEnemies(player, start, board);
         for (const enemy of enemies) {
+            const temp1: string[] = [];
+            const temp2: string[] = [];
             const landings = this.getLandingCells(start, enemy, board);
             for (const empty of landings) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -251,11 +253,14 @@ export class DragonEyesGame extends GameBase {
                 boardClone.delete(enemy);
                 const nextJumps = this.getCaptureMoves(player, empty, boardClone);
                 if (nextJumps.length === 0) {
-                    ret.push(`-${empty}`);
+                    temp1.push(`-${empty}`);
                 } else {
-                    for (const jump of nextJumps) ret.push(`-${empty}${jump}`);
+                    for (const jump of nextJumps) {
+                        temp2.push(`-${empty}${jump}`);
+                    }
                 }
             }
+            ret.push(...(temp2.length > 0 ? temp2 : temp1));
         }
         return ret;
     }
@@ -289,6 +294,10 @@ export class DragonEyesGame extends GameBase {
         const matches = this.moves().filter(mv => mv.startsWith(newMove));
         if (matches.length === 1) {
             result.move = matches[0];
+            result.valid = true;
+            result.complete = 1;
+        } else if (matches.length > 1 && !matches[0].includes("-")) {
+            result.move = newMove;
             result.valid = true;
             result.complete = 1;
         } else if (matches.length > 1) {
@@ -610,6 +619,9 @@ export class DragonEyesGame extends GameBase {
         return [{
             name: i18next.t("apgames:status.SCORES"),
             scores: [this.scores[0], this.scores[1]]
+        },{
+            name: i18next.t("apgames:status.PIECESREMAINING"),
+            scores: [this.remainingPieces[0], this.remainingPieces[1]]
         }];
     }
 
