@@ -28,7 +28,7 @@ export class GonnectGame extends GameBase {
         uid: "gonnect",
         playercounts: [2],
         version: "20240719",
-        dateAdded: "2024-07-19",
+        dateAdded: "2024-08-02",
         // i18next.t("apgames:descriptions.gonnect")
         description: "apgames:descriptions.gonnect",
         urls: ["https://boardgamegeek.com/boardgame/12146/gonnect"],
@@ -44,7 +44,7 @@ export class GonnectGame extends GameBase {
             { uid: "size-19", group: "board" },
         ],
         categories: ["goal>connect", "mechanic>place", "mechanic>capture", "board>shape>rect", "board>connect>rect", "components>simple"],
-        flags: ["experimental", "pie"],
+        flags: ["pie"],
     };
 
     public coords2algebraic(x: number, y: number): string {

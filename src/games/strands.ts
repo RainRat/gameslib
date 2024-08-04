@@ -28,7 +28,7 @@ export class StrandsGame extends GameBase {
         uid: "strands",
         playercounts: [2],
         version: "20240714",
-        dateAdded: "2024-07-14",
+        dateAdded: "2024-08-02",
         // i18next.t("apgames:descriptions.strands")
         description: "apgames:descriptions.strands",
         urls: ["https://boardgamegeek.com/boardgame/364343/strands"],
@@ -47,7 +47,7 @@ export class StrandsGame extends GameBase {
             { uid: "size-7-fixed", group: "board" },
         ],
         categories: ["goal>majority", "mechanic>place", "board>shape>hex", "board>connect>hex", "components>simple>1per"],
-        flags: ["experimental", "scores", "no-moves", "random-start", "custom-randomization"],
+        flags: ["scores", "no-moves", "random-start", "custom-randomization"],
         displays: [{ uid: "always-show-numbers" }],
     };
 

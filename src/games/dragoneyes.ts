@@ -32,7 +32,7 @@ export class DragonEyesGame extends GameBase {
         uid: "dragoneyes",
         playercounts: [2],
         version: "20240726",
-        dateAdded: "2024-07-26",
+        dateAdded: "2024-08-02",
         // i18next.t("apgames:descriptions.dragoneyes")
         description: "apgames:descriptions.dragoneyes",
         urls: ["https://dragoneyesabstractgame.blogspot.com/2024/07/dragon-eyes.html"],
@@ -41,7 +41,7 @@ export class DragonEyesGame extends GameBase {
             name: "Vadrya Pokshtya",
         }],
         categories: ["goal>score>eog", "mechanic>capture", "mechanic>move", "board>shape>hex", "board>connect>hex", "components>simple>1per"],
-        flags: ["automove", "limited-pieces", "custom-buttons", "experimental"],
+        flags: ["automove", "limited-pieces", "custom-buttons"],
         variants: [{uid: "claimdraw", group: "rules"}]
     };
 
