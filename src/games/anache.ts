@@ -1,4 +1,4 @@
-import { GameBase, IAPGameState, IClickResult, IIndividualState, IScores, IValidationResult } from "./_base";
+import { GameBase, IAPGameState, IClickResult, IIndividualState, IRenderOpts, IScores, IValidationResult } from "./_base";
 import { APGamesInformation } from "../schemas/gameinfo";
 import { APRenderRep, AnnotationBasic } from "@abstractplay/renderer/src/schemas/schema";
 import { APMoveResult } from "../schemas/moveresults";
@@ -47,11 +47,12 @@ export class AnacheGame extends GameBase {
         description: "apgames:descriptions.anache",
         // i18next.t("apgames:notes.anache")
         notes: "apgames:notes.anache",
-        urls: ["https://www.mathematik.hu-berlin.de/~ploog/BSB/Anache.pdf"],
+        urls: ["https://boardgamegeek.com/boardgame/425859/anache"],
         people: [
             {
                 type: "designer",
-                name: "GoldGeneral_0"
+                name: "Ocean Brindisi",
+                urls: ["https://boardgamegeek.com/boardgamedesigner/163211/ocean-brindisi"],
             }
         ],
         variants: [
@@ -60,6 +61,7 @@ export class AnacheGame extends GameBase {
         ],
         categories: ["goal>breakthrough", "goal>immobilize", "mechanic>move>group", "mechanic>capture", "board>shape>rect", "board>connect>rect", "components>simple"],
         flags: ["perspective", "limited-pieces", "no-moves"],
+        displays: [{uid: "hide-frozen"}],
     };
 
     public coords2algebraic(x: number, y: number): string {
@@ -1144,7 +1146,17 @@ export class AnacheGame extends GameBase {
         };
     }
 
-    public render(): APRenderRep {
+    public render(opts?: IRenderOpts): APRenderRep {
+        let altDisplay: string | undefined;
+        if (opts !== undefined) {
+            altDisplay = opts.altDisplay;
+        }
+        let showFrozen = true;
+        if (altDisplay !== undefined) {
+            if (altDisplay === "hide-frozen") {
+                showFrozen = false;
+            }
+        }
         // Build piece string
         let pstr = "";
         for (let row = 0; row < this.boardSize; row++) {
@@ -1173,12 +1185,16 @@ export class AnacheGame extends GameBase {
                         if (player === 1) {
                             if (this.selectedPieces.includes(cell)) {
                                 pstr += "E";
+                            } else if (showFrozen && this.isImmobilised(cell, this.board, player)) {
+                                pstr += "I";
                             } else {
                                 pstr += "A";
                             }
                         } else if (player === 2) {
                             if (this.selectedPieces.includes(cell)) {
                                 pstr += "F";
+                            } else if (showFrozen && this.isImmobilised(cell, this.board, player)) {
+                                pstr += "J";
                             } else {
                                 pstr += "B";
                             }
@@ -1234,6 +1250,9 @@ export class AnacheGame extends GameBase {
                 F: [{ name: "piece", colour: "#FFF" }, { name: "piece", colour: 2, opacity: 0.5 }],
                 G: [{ name: "piece", colour: "#FFF" }, { name: "piece-horse", colour: 1, opacity: 0.5 }],
                 H: [{ name: "piece", colour: "#FFF" }, { name: "piece-horse", colour: 2, opacity: 0.5 }],
+                // Frozen pieces
+                I: [{ name: "piece", colour: "#0FF" }, { name: "piece", colour: 1, opacity: 0.7 }],
+                J: [{ name: "piece", colour: "#0FF" }, { name: "piece", colour: 2, opacity: 0.7 }],
                 "arrow-N": [{ name: "pyramid-up-medium-3D", colour: "_context_strokes", "rotate": 0 }],
                 "arrow-NE": [{ name: "pyramid-up-medium-3D", colour: "_context_strokes", "rotate": 45 }],
                 "arrow-E": [{ name: "pyramid-up-medium-3D", colour: "_context_strokes", "rotate": 90 }],
