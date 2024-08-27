@@ -66,7 +66,6 @@ export class StigmergyGame extends GameBase {
                 group: "board"
             },
             {
-                // Note to future: "x" is reserved for captures, so board size cannot exceed 12.
                 uid: "size-10",
                 group: "board"
             },
@@ -223,7 +222,7 @@ export class StigmergyGame extends GameBase {
         for (const cell of this.listCells() as string[]) {
             const cellController = this.cellController(cell);
             if (this.board.has(cell) && this.board.get(cell) === otherPlayer && cellController === player) {
-                moves.push(`x${cell}`);
+                moves.push(`${cell}x`);
             } else if (!this.board.has(cell) && cellController !== otherPlayer) {
                 moves.push(cell);
             }
@@ -271,7 +270,7 @@ export class StigmergyGame extends GameBase {
             if (!result.valid) {
                 result.move = move;
             } else {
-                if (this.board.has(newmove)) result.move = `x${newmove}`;
+                if (this.board.has(newmove)) result.move = `${newmove}x`;
                 else result.move = newmove;
             }
             return result;
@@ -303,7 +302,7 @@ export class StigmergyGame extends GameBase {
     public validateMove(m: string): IValidationResult {
         m = m.toLowerCase();
         m = m.replace(/\s+/g, "");
-        if (m.startsWith('x')) m = m.substring(1);
+        if (m.endsWith('x')) m = m.substring(0, m.length-1);
 
         const result: IValidationResult = {valid: false, message: i18next.t("apgames:validation._general.DEFAULT_HANDLER")};
 
@@ -436,14 +435,15 @@ export class StigmergyGame extends GameBase {
         m = m.toLowerCase();
         m = m.replace(/\s+/g, "");
         let originalMove = m;
-        if (m.startsWith('x')) m = m.substring(1);
+        if (m.endsWith('x')) m = m.substring(0, m.length-1);
+
         if (!trusted) {
             const result = this.validateMove(m);
             if (!result.valid) {
                 throw new UserFacingError("VALIDATION_GENERAL", result.message);
             }
             const moves = this.moves();
-            if (!partial && this.stack.length > 2 && !(moves.includes(originalMove) || moves.includes(`x${originalMove}`)) && (!this.isButtonActive() || m !== "button")) {
+            if (!partial && this.stack.length > 2 && !(moves.includes(m) || moves.includes(`${m}x`)) && (!this.isButtonActive() || m !== "button")) {
                 throw new UserFacingError("VALIDATION_FAILSAFE", i18next.t("apgames:validation._general.FAILSAFE", {move: originalMove}));
             }
         }
@@ -471,7 +471,7 @@ export class StigmergyGame extends GameBase {
             this.results.push({type: "pie"});
         } else {
             if (this.board.has(m)) {
-                if (!originalMove.startsWith('x')) originalMove = `x${originalMove}`;
+                if (!originalMove.endsWith('x')) originalMove = `${originalMove}x`;
                 this.results.push({type: "capture", where: m});
             } else {
                 this.results.push({type: "place", where: m});
