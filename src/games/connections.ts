@@ -28,7 +28,7 @@ export class ConnectionsGame extends GameBase {
         uid: "connections",
         playercounts: [2],
         version: "20240912",
-        dateAdded: "2024-09-12",
+        dateAdded: "2024-09-14",
         // i18next.t("apgames:descriptions.connections")
         description: "apgames:descriptions.connections",
         urls: ["https://boardgamegeek.com/boardgame/3370/connections"],
@@ -40,10 +40,9 @@ export class ConnectionsGame extends GameBase {
         ],
         variants: [
             { uid: "size-5", group: "board" },
-            { uid: "size-13", group: "board" },
         ],
         categories: ["goal>align", "goal>connect", "mechanic>place", "board>shape>rect", "board>connect>rect", "components>special"],
-        flags: ["experimental", "pie"],
+        flags: ["pie"],
     };
 
     public coords2algebraic(x: number, y: number): string {
@@ -554,7 +553,7 @@ export class ConnectionsGame extends GameBase {
             legend: {
                 A: [{ name: "piece-square", colour: 1, scale: 0.25 }],
                 B: [{ name: "piece-square", colour: 2, scale: 0.25 }],
-                C: [{ name: "piece-square-borderless", colour: "#444", opacity: 0.05, scale: 1.5, rotate: 45 }],
+                C: [{ name: "piece-square-borderless", colour: "_context_fill", opacity: 0.05, scale: 1.5, rotate: 45 }],
             },
             pieces: pstr,
         };

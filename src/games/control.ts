@@ -28,7 +28,7 @@ export class ControlGame extends GameBase {
         uid: "control",
         playercounts: [2],
         version: "20240909",
-        dateAdded: "2024-09-09",
+        dateAdded: "2024-09-14",
         // i18next.t("apgames:descriptions.control")
         description: "apgames:descriptions.control",
         urls: ["https://boardgamegeek.com/boardgame/418399/control"],
@@ -40,7 +40,7 @@ export class ControlGame extends GameBase {
             }
         ],
         categories: ["goal>area", "mechanic>place",  "mechanic>capture", "board>shape>hex"],
-        flags: ["scores", "automove", "experimental"],
+        flags: ["scores", "automove"],
         variants: [
             {
                 uid: "size-5",
