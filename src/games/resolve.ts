@@ -28,7 +28,7 @@ export class ResolveGame extends GameBase {
         uid: "resolve",
         playercounts: [2],
         version: "20240917",
-        dateAdded: "2024-09-17",
+        dateAdded: "2024-09-22",
         // i18next.t("apgames:descriptions.resolve")
         description: "apgames:descriptions.resolve",
         urls: ["https://boardgamegeek.com/boardgame/314106/resolve"],
@@ -42,8 +42,8 @@ export class ResolveGame extends GameBase {
         variants: [
             { uid: "size-13", group: "board" },
         ],
-        categories: ["goal>connect", "mechanic>place", "mechanic>move", "board>shape>rect", "board>connect>rect", "components>simple"],
-        flags: ["experimental", "pie"],
+        categories: ["goal>connect", "mechanic>place", "mechanic>move", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
+        flags: ["pie"],
     };
 
     public coords2algebraic(x: number, y: number): string {
