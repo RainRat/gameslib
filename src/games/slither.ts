@@ -292,33 +292,22 @@ export class SlitherGame extends GameBase {
                     return result;
                 } else {
                     result.valid = false;
-                    result.message = i18next.t("apgames:validation.slither.DIAGONAL");
+                    result.message = i18next.t("apgames:validation.slither.DIAGONAL", { where: moves[0] });
                     return result;
                 }
             } else if (this.board.get(moves[0]) === this.currplayer) {
-                const [x,y] = SlitherGame.algebraic2coords(moves[0], this.boardSize);
                 if (!this.canMove(moves[0])) {
                     result.valid = false;
-                    result.message = i18next.t("apgames:validation.slither.CANNOT_MOVE");
+                    result.message = i18next.t("apgames:validation.slither.CANNOT_MOVE", { where: moves[0] });
                     return result;
                 }
-                let hasMoves = false;
-                for (const n of this.grid.adjacencies(x, y)) {
-                    const neighbour = SlitherGame.coords2algebraic(...n, this.boardSize);
-                    if (!this.board.has(neighbour)) {
-                        hasMoves = true;
-                        break;
-                    }
-                }
-                if (!hasMoves) {
-                    result.valid = false;
-                    result.message = i18next.t("apgames:validation._general.NO_MOVES", {where: moves[0]});
-                    return result;
-                }
+                // The selected piece might not have any possible destinations at this point.
+                // We allow this because there is now sufficient feedback in the UI
+                // to prompt the player to deselect the piece and make a different move.
                 result.valid = true;
                 result.complete = -1;
                 result.canrender = true;
-                result.message = i18next.t("apgames:validation._general.NEED_DESTINATION", moves[0]);
+                result.message = i18next.t("apgames:validation._general.NEED_DESTINATION");
                 return result;
             } else {
                 result.valid = false;
@@ -341,7 +330,7 @@ export class SlitherGame extends GameBase {
             return result;
         } else if (!this.isAdjacent(from, to) ) {
             result.valid = false;
-            result.message = i18next.t("apgames:validation.slither.NOT_ADJACENT");
+            result.message = i18next.t("apgames:validation.slither.NOT_ADJACENT", { from, to });
             return result;
         } else if (this.board.has(to)) {
             result.valid = false;
@@ -349,15 +338,20 @@ export class SlitherGame extends GameBase {
             return result;
         }
         if (!place) {
-            if (!this.hasValidFollowup(this.currplayer, from, to)) {
+            const followups = this.getValidFollowups(this.currplayer, from, to);
+            if (followups !== undefined && followups.size === 0) {
                 result.valid = false;
-                result.message = i18next.t("apgames:validation.slither.NO_VALID_FOLLOWUP");
+                result.message = i18next.t("apgames:validation.slither.NO_VALID_FOLLOWUP", { to });
                 return result;
             }
             result.valid = true;
             result.complete = -1;
             result.canrender = true;
-            result.message = i18next.t("apgames:validation.slither.NEED_PLACEMENT");
+            if (followups === undefined) {
+                result.message = i18next.t("apgames:validation.slither.NEED_PLACEMENT");
+            } else {
+                result.message = i18next.t("apgames:validation.slither.NEED_PLACEMENT_DIAGONAL");
+            }
             return result;
         }
         if (this.board.has(place) && place !== from || place === to) {
@@ -366,12 +360,9 @@ export class SlitherGame extends GameBase {
             return result;
         } else if (!this.isValid(this.currplayer, [to, place], [from])) {
             result.valid = false;
-            result.message = i18next.t("apgames:validation.slither.DIAGONAL");
+            result.message = i18next.t("apgames:validation.slither.DIAGONAL", { where: place });
             return result;
         }
-        // A partial case not handled is if a player clicks on a piece where all
-        // destinations result in an unfixable diagonal, but in practice, this should not
-        // be a real problem.
         result.valid = true;
         result.complete = 1;
         result.message = i18next.t("apgames:validation._general.VALID_MOVE");
