@@ -47,6 +47,7 @@ export class TableroGame extends GameBase {
                 urls: ["https://crabfragmentlabs.com/"],
             },
         ],
+        variants: [{uid: "5-10", group: "scoring"}],
         categories: ["goal>score>eog", "mechanic>place",  "mechanic>move", "mechanic>coopt", "mechanic>random>play", "mechanic>stack", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
         flags: ["limited-pieces", "perspective", "scores", "automove", "no-explore", "custom-rotation"]
     };
@@ -89,12 +90,16 @@ export class TableroGame extends GameBase {
     public variants: string[] = [];
     public stack!: Array<IMoveState>;
     public results: Array<APMoveResult> = [];
+    private emulated = false;
     // This field is not persisted. It is used for partials only to show the stack that is moving.
     public moving?: playerid[];
 
-    constructor(state?: ITableroState | string) {
+    constructor(state?: ITableroState | string, variants?: string[]) {
         super();
         if (state === undefined) {
+            if (variants !== undefined) {
+                this.variants = [...variants];
+            }
             const d1 = randomInt(6);
             const d2= randomInt(6);
             const board = new Map<string, playerid[]>();
@@ -640,7 +645,7 @@ export class TableroGame extends GameBase {
         }
     }
 
-    public move(m: string, {trusted = false, partial = false} = {}): TableroGame {
+    public move(m: string, {trusted = false, partial = false, emulation = false} = {}): TableroGame {
         if (this.gameover) {
             throw new UserFacingError("MOVES_GAMEOVER", i18next.t("apgames:MOVES_GAMEOVER"));
         }
@@ -662,6 +667,7 @@ export class TableroGame extends GameBase {
             }
         }
 
+        this.emulated = emulation;
         this.results = [];
         const moves = (m.split(","));
         for (const move of moves) {
@@ -807,7 +813,11 @@ export class TableroGame extends GameBase {
             if (this.board.has(cell)) {
                 const stack = this.board.get(cell)!;
                 if (stack[stack.length - 1] === player) {
-                    score += col + 1
+                    let pts = col + 1;
+                    if (this.variants.includes("5-10")) {
+                        pts += 4;
+                    }
+                    score += pts;
                 }
             }
         }
@@ -995,9 +1005,11 @@ export class TableroGame extends GameBase {
                 },
                 D1: {
                     name: `d6-${this.roll[0]}`,
+                    opacity: this.emulated ? 0 : 1,
                 },
                 D2: {
                     name: `d6-${this.roll[1]}`,
+                    opacity: this.emulated ? 0 : 1,
                 }
             },
             pieces: pstr,
