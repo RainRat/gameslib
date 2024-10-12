@@ -1,13 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { GameBase, IAPGameState, IClickResult, IIndividualState, IScores, IValidationResult } from "./_base";
 import { APGamesInformation } from "../schemas/gameinfo";
 import { APRenderRep, Glyph } from "@abstractplay/renderer/src/schemas/schema";
 import { APMoveResult } from "../schemas/moveresults";
 import { RectGrid, reviver, UserFacingError, allDirections, Directions } from "../common";
 import i18next from "i18next";
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-const deepclone = require("rfdc/default");
 
 export type playerid = 1|2;
 type CellContents = [playerid, number];
@@ -50,6 +46,9 @@ export class LielowGame extends GameBase {
                 urls: ["https://boardgamegeek.com/boardgamedesigner/101050/alek-erickson"],
             },
         ],
+        variants: [
+            { uid: "size-9", group: "board" },
+        ],
         categories: ["goal>royal-capture", "mechanic>bearoff", "mechanic>capture", "mechanic>move", "mechanic>stack", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
         flags: ["perspective", "aiai", "limited-pieces"]
     };
@@ -70,18 +69,31 @@ export class LielowGame extends GameBase {
     public stack!: Array<IMoveState>;
     public results: Array<APMoveResult> = [];
     private kingPos: [string?, string?] = [undefined, undefined];
-    private boardSize = 8;
+    private boardSize: number;
     private grid: RectGrid;
     private _points: [number, number][] = []; // if there are points here, the renderer will show them
 
-    constructor(state?: ILielowState | string) {
+    constructor(state?: ILielowState | string, variants?: string[]) {
         super();
         if (state === undefined) {
+            if (variants !== undefined) {
+                this.variants = [...variants];
+            }
+            this.boardSize = this.variants.includes("size-9") ? 9 : 8;
             const board = new Map<string, CellContents>();
             // Initialise pieces for both players.
-            for (let i = 0; i < this.boardSize; i++) {
-                board.set(this.coords2algebraic(i, this.boardSize - 2), [1, 1]);
-                board.set(this.coords2algebraic(i, 1), [2, 1]);
+            if (this.variants.includes("size-9")) {
+                for (let i = 0; i < this.boardSize; i++) {
+                    board.set(this.coords2algebraic(i, this.boardSize - 1), [1, 1]);
+                    board.set(this.coords2algebraic(i, this.boardSize - 3), [1, 1]);
+                    board.set(this.coords2algebraic(i, 0), [2, 1]);
+                    board.set(this.coords2algebraic(i, 2), [2, 1]);
+                }
+            } else {
+                for (let i = 0; i < this.boardSize; i++) {
+                    board.set(this.coords2algebraic(i, this.boardSize - 2), [1, 1]);
+                    board.set(this.coords2algebraic(i, 1), [2, 1]);
+                }
             }
             const kingPos: [string?, string?] = [undefined, undefined]
             const fresh: IMoveState = {
@@ -104,6 +116,7 @@ export class LielowGame extends GameBase {
             this.winner = [...state.winner];
             this.variants = state.variants;
             this.stack = [...state.stack];
+            this.boardSize = this.variants.includes("size-9") ? 9 : 8;
         }
         this.load();
         this.grid = new RectGrid(this.boardSize,this.boardSize);
@@ -119,7 +132,7 @@ export class LielowGame extends GameBase {
 
         const state = this.stack[idx];
         this.currplayer = state.currplayer;
-        this.board = deepclone(state.board) as Map<string, CellContents>;
+        this.board = [...state.board].reduce((m, [k, v]) => m.set(k, [v[0], v[1]]), new Map<string, CellContents>());
         this.kingPos = [...state.kingPos];
         this.lastmove = state.lastmove;
         this.results = [...state._results];
@@ -517,7 +530,7 @@ export class LielowGame extends GameBase {
             _timestamp: new Date(),
             currplayer: this.currplayer,
             lastmove: this.lastmove,
-            board: new Map(this.board),
+            board: [...this.board].reduce((m, [k, v]) => m.set(k, [v[0], v[1]]), new Map<string, CellContents>()),
             kingPos: [...this.kingPos]
         };
     }
