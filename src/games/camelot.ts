@@ -470,11 +470,17 @@ export class CamelotGame extends GameBase {
         } else {
             const pieces = [...this.board].filter(([, v]) => v[0] === player).map(([k, ]) => k);
             // If a player has pieces in their own castle, they must move them.
-            const mustJump = this.jumpPieces(player, pieces).length > 0;
+            const jumpPieces = this.jumpPieces(player, pieces);
+            const mustJump = jumpPieces.length > 0;
             const piecesInOwnCastle = this.inOwnCastlePieces(player, pieces);
             if (piecesInOwnCastle.length > 0) {
                 for (const from of piecesInOwnCastle) {
-                    moves.push(...this.getAllMoves(from, mustJump));
+                    if(jumpPieces.includes(from)) {
+                        // Mandatory jump from castle.
+                        moves.push(...this.getAllMoves(from, true));
+                    } else {
+                        moves.push(...this.getAllMoves(from, false));
+                    }
                 }
             } else {
                 // If a player has pieces that can jump, they must jump.
@@ -504,8 +510,10 @@ export class CamelotGame extends GameBase {
         // Check if a player has any moves.
         player ??= this.currplayer;
         if (this.gameover) { return false; }
-        const pieces = [...this.board].filter(([, v]) => v[0] === player);
-        for (const [from, ] of pieces) {
+        const pieces = [...this.board].filter(([, v]) => v[0] === player).map(([k, ]) => k);
+        const mustJump = this.jumpPieces(player, pieces).length > 0;
+        if (mustJump) { return true; }
+        for (const from of pieces) {
             if (this.getAllMoves(from).length > 0) { return true; }
         }
         return false;
@@ -555,6 +563,9 @@ export class CamelotGame extends GameBase {
                         // Remove the last action.
                         const lastSplitIndex = move.split('').reduceRight((acc, char, index) => acc === -1 && /[-^x]/.test(char) ? index : acc, -1);
                         newmove = move.slice(0, lastSplitIndex);
+                    } else if (split.length === 1 && this.board.has(cell) && this.board.get(cell)![0] === this.currplayer) {
+                        // If the player hasn't moved a piece, they may select another of their own.
+                        newmove = cell;
                     } else {
                         const others = split.slice(0, -1);
                         const canters = this.getCanters(last, others, this.currplayer);
@@ -722,15 +733,19 @@ export class CamelotGame extends GameBase {
             // For jump check, we remove the cell that is being moved from.
             const allRemoved = [from];
             const pieces = [...this.board].filter(([, v]) => v[0] === this.currplayer).map(([k, ]) => k);
-            // If a player has pieces in their own castle, they must it now.
+            // If a player has pieces in their own castle, they must move it now.
             const inOwnCastle = this.inOwnCastlePieces(this.currplayer, pieces);
             if (inOwnCastle.length > 0 && !inOwnCastle.includes(from)) {
                 result.valid = false;
                 result.message = i18next.t("apgames:validation.camelot.IN_CASTLE", { where: inOwnCastle.join(", ") });
                 return result;
             }
-            const mustJump = this.jumpPieces(this.currplayer, pieces).length > 0;
-            const allMoves = this.getAllMoves(from, mustJump);
+            const jumpPieces = this.jumpPieces(this.currplayer, pieces);
+            const mustJump = jumpPieces.length > 0;
+            // Get all moves.
+            // If the piece is not in the castle, then we just get all moves depending on whether there is a forced jump.
+            // Otherwise, we only force the piece to jump if that piece in the castle has a mandatory jump.
+            const allMoves = inOwnCastle.length === 0 ? this.getAllMoves(from, mustJump) : jumpPieces.includes(from) ? this.getAllMoves(from, true) : this.getAllMoves(from, false);
             // Check if the piece selected has any moves.
             if (allMoves.length === 0) {
                 if (mustJump) {
@@ -771,6 +786,12 @@ export class CamelotGame extends GameBase {
                         // Check if a move is a plain move.
                         const plain = this.getPlain(prev, this.currplayer);
                         if (plain.includes(move)) {
+                            if (i > 1) {
+                                // A plain move must be the first move in a sequence.
+                                result.valid = false;
+                                result.message = i18next.t("apgames:validation.camelot.INVALID_TO", { from: prev, to: move });
+                                return result;
+                            }
                             if (moveTypes[i - 1] !== "-") {
                                 // Check that the move is correctly represented by the notation.
                                 result.valid = false;
