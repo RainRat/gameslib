@@ -24,8 +24,8 @@ export class FramesGame extends GameBaseSimultaneous {
         name: "Frames",
         uid: "frames",
         playercounts: [2],
-        version: "2024-11-27",
-        dateAdded: "2023-11-28",
+        version: "20241127",
+        dateAdded: "2024-11-28",
         // i18next.t("apgames:descriptions.frames")
         description: "apgames:descriptions.frames",
         urls: [
@@ -38,7 +38,7 @@ export class FramesGame extends GameBaseSimultaneous {
             }
         ],
         categories: ["goal>score>race", "mechanic>place",  "mechanic>enclose", "mechanic>simultaneous", "board>shape>rect", "board>connect>rect", "components>simple>1c"],
-        flags: ["experimental", "simultaneous", "scores"]
+        flags: ["simultaneous", "scores"]
     };
 
     public static coords2algebraic(x: number, y: number): string {
@@ -75,7 +75,7 @@ export class FramesGame extends GameBaseSimultaneous {
                 _results: [],
                 _timestamp: new Date(),
                 lastmove: [],
-                board: new Map(),
+                board: new Map([["j10", 0]]),
                 scores: [0,0],
             };
             this.stack = [fresh];
@@ -188,6 +188,15 @@ export class FramesGame extends GameBaseSimultaneous {
                 }
             }
         }
+        if (partial) {
+            const [left,right] = m.split(/\s*,\s*/);
+            if (!/^\s*$/.test(left)) {
+                this.board.set(left, 1);
+            } else {
+                this.board.set(right, 2);
+            }
+            return this;
+        }
 
         this.results = [];
         // if moves are the same, place a neutral piece
@@ -225,8 +234,6 @@ export class FramesGame extends GameBaseSimultaneous {
                 this.results.push({type: "deltaScore", delta: 1, who: counts[0] > counts[1] ? 1 : 2});
             }
         }
-
-        if (partial) { return this; }
 
         this.lastmove = [...moves].join(',');
         this.checkEOG();
