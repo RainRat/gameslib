@@ -73,7 +73,6 @@ export class LoggerGame extends GameBase {
     public stack!: Array<IMoveState>;
     public results: Array<APMoveResult> = []
     public highlights: string[] = [];
-    public interimMove = "";
 
     constructor(state: number | ILoggerState | string) {
         super();
@@ -255,7 +254,7 @@ export class LoggerGame extends GameBase {
         }
     }
 
-    private getMode(move: string): "place"|"move"|"spawn"|"act" {
+    public getMode(move: string): "place"|"move"|"spawn"|"act" {
         if (move === undefined) {
             move = "";
         }
@@ -634,7 +633,6 @@ export class LoggerGame extends GameBase {
 
         this.results = [];
         this.highlights = [];
-        this.interimMove = m;
         const mode = this.getMode(m);
         const [mv, spawn, act] = m.split(/\s*;\s*/);
         const currPlayerPc = [...this.board.entries()].find(([,pc]) => pc === `P${this.currplayer}`)!;
@@ -963,7 +961,7 @@ export class LoggerGame extends GameBase {
                 rep.annotations.push({type: "enter", targets: [{row: toY, col: toX}], colour: this.currplayer > 2 ? this.currplayer + 1 : this.currplayer});
             }
         }
-        // only proactively show placement options for currplayer
+        // only proactively show placement options for participants
         else if (perspective !== undefined && [...this.board.values()].find(pc => pc === `P${this.currplayer}`) === undefined) {
             if (! ("annotations" in rep)) {
                 rep.annotations = [];
@@ -974,8 +972,8 @@ export class LoggerGame extends GameBase {
                 rep.annotations!.push({type: "enter", targets: [{row: toY, col: toX}], colour: this.currplayer > 2 ? this.currplayer + 1 : this.currplayer});
             }
         }
-        // only proactively show movement options for currplayer
-        else if (perspective !== undefined && this.getMode(this.interimMove) === "move") {
+        // only proactively show movement options for participants
+        else if (perspective !== undefined && (this.results.length === 0)) {
             if (! ("annotations" in rep)) {
                 rep.annotations = [];
             }
@@ -1062,5 +1060,10 @@ export class LoggerGame extends GameBase {
 
     public clone(): LoggerGame {
         return Object.assign(new LoggerGame(this.numplayers), clone(this) as LoggerGame);
+    }
+
+    protected saveState(): void {
+        super.saveState();
+        this.results = [];
     }
 }
