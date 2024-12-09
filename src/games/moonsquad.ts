@@ -214,7 +214,7 @@ export class MoonSquadGame extends GameBase {
                     if (match === null) {
                         throw new Error(`Unable to parse a squad movement click.`);
                     }
-                    const mvs = match[1].split(";");
+                    const mvs = match[1].split(",");
                     if (mvs[0] === "") {
                         mvs.shift();
                     }
@@ -226,7 +226,7 @@ export class MoonSquadGame extends GameBase {
                     else {
                         mvs.push(cell);
                     }
-                    newmove = move.substring(0, 2) + "(" + mvs.join(";") + ")";
+                    newmove = move.substring(0, 2) + "(" + mvs.join(",") + ")";
                 }
                 // otherwise it must be a capture
                 else {
@@ -381,7 +381,7 @@ export class MoonSquadGame extends GameBase {
                     result.message = i18next.t("apgames:validation.moonsquad.PARTIAL_MOVE", {context: "first"});
                     return result;
                 }
-                const mvs = mvStr.split(";");
+                const mvs = mvStr.split(",");
                 const mySquads = this.mySquads();
                 for (const mv of mvs) {
                     const [from, to] = mv.split("-");
@@ -416,16 +416,27 @@ export class MoonSquadGame extends GameBase {
                     }
                     // otherwise, valid partial
                     else {
-                        result.valid = true;
-                        result.complete = -1;
-                        result.canrender = true;
-                        result.message = i18next.t("apgames:validation.moonsquad.PARTIAL_MOVE", {context: "second"});
-                        return result;
+                        // make sure there's somewhere for this squad to move
+                        const islands = this.getIslands();
+                        const group = islands.find(x => x.includes(from))!.filter(x => !this.squads.has(x));
+                        if (group.length === 0) {
+                            result.valid = false;
+                            result.message = i18next.t("apgames:validation.moonsquad.NO_MOVES");
+                            return result;
+                        }
+                        // otherwise valid partial
+                        else {
+                            result.valid = true;
+                            result.complete = -1;
+                            result.canrender = true;
+                            result.message = i18next.t("apgames:validation.moonsquad.PARTIAL_MOVE", {context: "second"});
+                            return result;
+                        }
                     }
                 }
                 // if we make it here, then it's valid and possibly complete
                 result.valid = true;
-                result.complete = mvs.length === mySquads.length ? 1 : 0;
+                result.complete = this.highlights.length > 0 ? 0 : 1;
                 result.canrender = true;
                 result.message = i18next.t("apgames:validation._general.VALID_MOVE");
                 return result;
@@ -456,6 +467,12 @@ export class MoonSquadGame extends GameBase {
                 result.message = i18next.t("apgames:validation.moonsquad.BAD_CAPTURE");
                 return result;
             }
+            // is adjacent
+            if (!g.neighbours(from).includes(to)) {
+                result.valid = false;
+                result.message = i18next.t("apgames:validation.moonsquad.BAD_CAPTURE");
+                return result;
+            }
 
             // we're good
             result.valid = true;
@@ -467,12 +484,29 @@ export class MoonSquadGame extends GameBase {
         else {
             // if capture start
             if (this.mySquads().includes(m)) {
+                // are valid captures even possible from there?
+                let cancap = false;
+                for (const n of g.neighbours(m)) {
+                    if (this.board.has(n) && this.board.get(n) === (this.currplayer === 1 ? 2 : 1)) {
+                        cancap = true;
+                        break;
+                    }
+                }
+
                 // valid partial capture
-                result.valid = true;
-                result.complete = -1;
-                result.canrender = true;
-                result.message = i18next.t("apgames:validation.moonsquad.PARTIAL_CAPTURE");
-                return result;
+                if (cancap) {
+                    result.valid = true;
+                    result.complete = -1;
+                    result.canrender = true;
+                    result.message = i18next.t("apgames:validation.moonsquad.PARTIAL_CAPTURE");
+                    return result;
+                }
+                // otherwise no captures are available
+                else {
+                    result.valid = false;
+                    result.message = i18next.t("apgames:validation.moonsquad.NO_CAPTURES");
+                    return result;
+                }
             }
             // otherwise regular placement
             // cell valid
@@ -555,11 +589,14 @@ export class MoonSquadGame extends GameBase {
                 if (oreNum === undefined) {
                     throw new Error(`Could not find a code for the ore colour ${oreName}.`);
                 }
-                const oreIdx = this.ore[this.currplayer - 1].findIndex(x => x === oreNum);
-                if (oreIdx > -1) {
-                    this.ore[this.currplayer - 1].splice(oreIdx, 1);
+                // don't sacrifice the ore until the move is complete
+                if (!partial) {
+                    const oreIdx = this.ore[this.currplayer - 1].findIndex(x => x === oreNum);
+                    if (oreIdx > -1) {
+                        this.ore[this.currplayer - 1].splice(oreIdx, 1);
+                    }
+                    this.results.push({type: "sacrifice", what: oreName});
                 }
-                this.results.push({type: "sacrifice", what: oreName});
                 let mvStr = "";
                 if (idx > -1) {
                     mvStr = m.substring(idx+1);
@@ -568,12 +605,20 @@ export class MoonSquadGame extends GameBase {
                     }
                 }
                 if (partial) {
-                    this.highlights.push(...this.mySquads());
+                    const islands = this.getIslands();
+                    for (const squad of this.mySquads()) {
+                        const dests = islands.find(grp => grp.includes(squad))!.filter(x => !this.squads.has(x));
+                        if (dests.length > 0) {
+                            this.highlights.push(squad);
+                        }
+                    }
                 }
                 const mvs = mvStr.split(",");
+                const exclude = new Set<string>();
                 for (const mv of mvs) {
                     const [from, to] = mv.split("-");
                     if (from === undefined || from === "") { continue; }
+                    exclude.add(from);
                     // if a to is provided
                     if (to !== undefined && to.length > 0) {
                         // move the squad
@@ -590,7 +635,7 @@ export class MoonSquadGame extends GameBase {
                         this.highlights = [from];
                         const islands = this.getIslands();
                         const group = islands.find(x => x.includes(from))!;
-                        this.dots = group.filter(g => g !== from && !this.squads.has(g));
+                        this.dots = group.filter(g => g !== from && !this.squads.has(g) && !exclude.has(g));
                     }
                 }
             }
