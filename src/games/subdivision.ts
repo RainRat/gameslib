@@ -38,7 +38,7 @@ export class SubdivisionGame extends GameBase {
         uid: "subdivision",
         playercounts: [2,3,4],
         version: "20241203",
-        dateAdded: "2024-09-08",
+        dateAdded: "2024-12-13",
         // i18next.t("apgames:descriptions.subdivision")
         description: "apgames:descriptions.subdivision",
         urls: [
@@ -67,7 +67,7 @@ export class SubdivisionGame extends GameBase {
             }
         ],
         categories: ["goal>score>eog", "mechanic>place", "board>shape>rect", "board>connect>rect", "components>pyramids"],
-        flags: ["experimental", "scores", "custom-colours", "custom-buttons", "random-start", "automove"]
+        flags: ["scores", "custom-colours", "custom-buttons", "random-start", "automove"]
     };
 
     public numplayers!: number;
