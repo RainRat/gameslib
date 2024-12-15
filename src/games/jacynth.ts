@@ -4,7 +4,7 @@ import { APRenderRep, AreaPieces, Glyph, MarkerFlood, MarkerOutline, RowCol } fr
 import { APMoveResult } from "../schemas/moveresults";
 import { reviver, shuffle, SquareOrthGraph, UserFacingError } from "../common";
 import i18next from "i18next";
-import { Card, Deck, cardSortDesc, cardsBasic, cardsExtended, suits } from "../common/decktet";
+import { Card, Deck, cardSortAsc, cardSortDesc, cardsBasic, cardsExtended, suits } from "../common/decktet";
 import { connectedComponents } from "graphology-components";
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const deepclone = require("rfdc/default");
@@ -75,7 +75,7 @@ export class JacynthGame extends GameBase {
             }
         ],
         categories: ["goal>score>eog", "mechanic>place", "mechanic>network", "mechanic>hidden", "board>shape>rect", "board>connect>rect", "components>decktet"],
-        flags: ["experimental", "scores", "random-start", "no-moves", "custom-randomization"]
+        flags: ["experimental", "scores", "random-start", "no-moves", "custom-randomization", "no-explore"],
     };
     public static coords2algebraic(x: number, y: number): string {
         return GameBase.coords2algebraic(x, y, 6);
@@ -131,7 +131,7 @@ export class JacynthGame extends GameBase {
     public stack!: Array<IMoveState>;
     public results: Array<APMoveResult> = [];
     private deck!: Deck;
-    private emulated = false;
+    // private emulated = false;
 
     constructor(state: number | IJacynthState | string, variants?: string[]) {
         super();
@@ -189,6 +189,7 @@ export class JacynthGame extends GameBase {
             if (state.game !== JacynthGame.gameinfo.uid) {
                 throw new Error(`The Jacynth engine cannot process a game of '${state.game}'.`);
             }
+            this.numplayers = state.numplayers;
             this.gameover = state.gameover;
             this.winner = [...state.winner];
             this.variants = state.variants;
@@ -481,7 +482,7 @@ export class JacynthGame extends GameBase {
         }
     }
 
-    public move(m: string, {trusted = false, partial = false, emulation = false} = {}): JacynthGame {
+    public move(m: string, {trusted = false, partial = false} = {}): JacynthGame {
         if (this.gameover) {
             throw new UserFacingError("MOVES_GAMEOVER", i18next.t("apgames:MOVES_GAMEOVER"));
         }
@@ -496,7 +497,7 @@ export class JacynthGame extends GameBase {
         }
 
         this.results = [];
-        this.emulated = emulation;
+        // this.emulated = emulation;
         const [mv, influence] = m.split(",");
         let [card, to] = mv.split("-");
         card = card.toUpperCase();
@@ -561,8 +562,8 @@ export class JacynthGame extends GameBase {
         return this;
     }
 
-    public state(): IJacynthState {
-        return {
+    public state(opts?: {strip?: boolean, player?: number}): IJacynthState {
+        const state: IJacynthState = {
             game: JacynthGame.gameinfo.uid,
             numplayers: this.numplayers,
             variants: this.variants,
@@ -570,6 +571,16 @@ export class JacynthGame extends GameBase {
             winner: [...this.winner],
             stack: [...this.stack]
         };
+        if (opts !== undefined && opts.strip) {
+            state.stack = state.stack.map(mstate => {
+                for (let p = 1; p <= this.numplayers; p++) {
+                    if (p === opts.player) { continue; }
+                    mstate.hands[p-1] = [];
+                }
+                return mstate;
+            });
+        }
+        return state;
     }
 
     public moveState(): IMoveState {
@@ -650,23 +661,18 @@ export class JacynthGame extends GameBase {
             }
         }
 
-        // build legend from visible cards
-        // if emulated, remove the last drawn card
-        const hands = this.hands.map(h => [...h]);
-        if (this.emulated) {
-            hands[this.currplayer - 1].pop();
-        }
-        const visibleCards = [...this.board.values(), ...hands.flat()].map(uid => Card.deserialize(uid));
-        if (visibleCards.includes(undefined)) {
-            throw new Error(`Could not deserialize one of the cards. This should never happen!`);
+        // build legend of ALL cards
+        const allcards = [...cardsBasic];
+        if (this.variants.includes("extended")) {
+            allcards.push(...cardsExtended);
         }
         const legend: ILegendObj = {};
-        for (const card of visibleCards) {
-            legend["c" + card!.uid] = JacynthGame.card2glyph(card!);
+        for (const card of allcards) {
+            legend["c" + card.uid] = JacynthGame.card2glyph(card);
         }
 
         // build pieces areas
-        let areas: AreaPieces[]|undefined = [];
+        const areas: AreaPieces[] = [];
         for (let p = 1; p <= this.numplayers; p++) {
             const hand = this.hands[p-1];
             if (hand.length > 0) {
@@ -678,9 +684,20 @@ export class JacynthGame extends GameBase {
                 });
             }
         }
-        if (areas.length === 0) {
-            areas = undefined;
+        // create an area for all invisible cards
+        // we still need to know what cards are visible so we can
+        // draw the invisible ones
+        const hands = this.hands.map(h => [...h]);
+        const visibleCards = [...this.board.values(), ...hands.flat()].map(uid => Card.deserialize(uid));
+        if (visibleCards.includes(undefined)) {
+            throw new Error(`Could not deserialize one of the cards. This should never happen!`);
         }
+        areas.push({
+            type: "pieces",
+            label: i18next.t("apgames:validation.jacynth.LABEL_REMAINING") || "Cards in deck",
+            spacing: 0.25,
+            pieces: allcards.sort(cardSortAsc).filter(c => visibleCards.find(cd => cd!.uid === c.uid) === undefined).map(c => "c" + c.uid) as [string, ...string[]],
+        });
 
         // Build rep
         const rep: APRenderRep =  {
@@ -705,7 +722,7 @@ export class JacynthGame extends GameBase {
             for (const move of this.stack[this.stack.length - 1]._results) {
                 if (move.type === "place" || move.type === "claim") {
                     const [x, y] = JacynthGame.algebraic2coords(move.where!);
-                    rep.annotations.push({type: "enter", targets: [{row: y, col: x}]});
+                    rep.annotations.push({type: "enter", occlude: false, targets: [{row: y, col: x}]});
                 }
             }
         }
