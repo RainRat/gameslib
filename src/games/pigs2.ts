@@ -694,7 +694,8 @@ export class Pigs2Game extends GameBaseSimultaneous {
         for (const [g, u] of glyph2unicode.entries()) {
             legend[g] = {
                 text: u,
-                colour: "_context_labels"
+                colour: "_context_labels",
+                rotate: null,
             };
         }
         // rotation annotation glyphs
@@ -702,11 +703,13 @@ export class Pigs2Game extends GameBaseSimultaneous {
             text: "\u21b7",
             colour: "_context_annotations",
             scale: 0.5,
+            orientation: "vertical",
         };
         legend.nCCW = {
             text: "\u21b6",
             colour: "_context_annotations",
             scale: 0.5,
+            orientation: "vertical",
         };
 
         // build pieces areas
@@ -901,11 +904,13 @@ export class Pigs2Game extends GameBaseSimultaneous {
 
     // In this version, timeouts and resignations result in being eliminated
     // without necessarily ending the game.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public resign(player: number): GameBaseSimultaneous {
         // make function a no-op and then handle the move normally
         return this;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public timeout(player: number): GameBaseSimultaneous {
         // make function a no-op and then handle the move normally
         return this;
