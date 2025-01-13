@@ -172,6 +172,8 @@ import { TerraceGame, ITerraceState } from "./terrace";
 import { CubeoGame, ICubeoState } from "./cubeo";
 import { StorisendeGame, IStorisendeState } from "./storisende";
 import { TraxGame, ITraxState } from "./trax";
+import { AmoebaGame, IAmoebaState } from "./amoeba";
+import { YavalathGame, IYavalathState } from "./yavalath";
 
 export {
     APGamesInformation, GameBase, GameBaseSimultaneous, IAPGameState,
@@ -346,6 +348,8 @@ export {
     CubeoGame, ICubeoState,
     StorisendeGame, IStorisendeState,
     TraxGame, ITraxState,
+    AmoebaGame, IAmoebaState,
+    YavalathGame, IYavalathState,
 };
 
 const games = new Map<string, typeof AmazonsGame | typeof BlamGame | typeof CannonGame |
@@ -405,7 +409,8 @@ const games = new Map<string, typeof AmazonsGame | typeof BlamGame | typeof Cann
                               typeof FramesGame | typeof LoggerGame | typeof SubdivisionGame |
                               typeof PylonGame | typeof MoonSquadGame | typeof JacynthGame |
                               typeof Pigs2Game | typeof TerraceGame | typeof CubeoGame |
-                              typeof StorisendeGame | typeof TraxGame
+                              typeof StorisendeGame | typeof TraxGame | typeof AmoebaGame |
+                              typeof YavalathGame
                 >();
 // Manually add each game to the following array
 [
@@ -433,6 +438,7 @@ const games = new Map<string, typeof AmazonsGame | typeof BlamGame | typeof Cann
     QueryGame, ControlGame, BoxesGame, ConnectionsGame, ResolveGame, OnyxGame, AltaGame,
     HulaGame, KonaneGame, BlastRadiusGame, FramesGame, LoggerGame, SubdivisionGame, PylonGame,
     MoonSquadGame, JacynthGame, Pigs2Game, TerraceGame, CubeoGame, StorisendeGame, TraxGame,
+    AmoebaGame, YavalathGame,
 ].forEach((g) => {
     if (games.has(g.gameinfo.uid)) {
         throw new Error("Another game with the UID '" + g.gameinfo.uid + "' has already been used. Duplicates are not allowed.");
@@ -786,6 +792,10 @@ export const GameFactory = (game: string, ...args: any[]): GameBase|GameBaseSimu
             return new StorisendeGame(...args);
         case "trax":
             return new TraxGame(...args);
+        case "amoeba":
+            return new AmoebaGame(...args);
+        case "yavalath":
+            return new YavalathGame(...args);
     }
     return;
 }
