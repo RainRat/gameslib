@@ -274,7 +274,7 @@ export class CatapultGame extends GameBase {
                 newmove = cell;
             } else {
                 if (contents !== undefined && contents[0] === cloned.currplayer) {
-                    if (hasDagger) {
+                    if (hasDagger && move.length > 4) {
                         newmove = move + ";" + cell;
                     } else {
                         newmove = cell;
@@ -340,6 +340,20 @@ export class CatapultGame extends GameBase {
             }
         }
 
+        // check for pass
+        if (m === "pass") {
+            if (!this.moves().includes("pass")) {
+                result.valid = false;
+                result.message = i18next.t("apgames:validation.catapult.BAD_PASS");
+                return result;
+            } else {
+                result.valid = true;
+                result.complete = 1;
+                result.message = i18next.t("apgames:validation._general.VALID_MOVE");
+                return result;
+            }
+        }
+
         const cloned = this.clone();
         for (const mv of m.split(";")) {
             if (mv === undefined || mv === "") {
@@ -399,7 +413,9 @@ export class CatapultGame extends GameBase {
         result.valid = true;
         result.complete = (!m.includes(";") && hasDagger) ? 0 : 1;
         result.canrender = true;
-        result.message = i18next.t("apgames:validation._general.VALID_MOVE");
+        result.message = (!m.includes(";") && hasDagger) ?
+                            i18next.t("apgames:validation.catapult.PARTIAL_DAGGER") :
+                            i18next.t("apgames:validation._general.VALID_MOVE");
         return result;
     }
 
