@@ -181,6 +181,8 @@ import { ChurnGame, IChurnState } from "./churn";
 import { PenguinGame, IPenguinState } from "./penguin";
 import { OwlmanGame, IOwlmanState } from "./owlman";
 import { SquaredanceGame, ISquaredanceState } from "./squaredance";
+import { MegGame, IMegState } from "./meg";
+import { YonmoqueGame, IYonmoqueState } from "./yonmoque";
 
 export {
     APGamesInformation, GameBase, GameBaseSimultaneous, IAPGameState,
@@ -364,6 +366,8 @@ export {
     PenguinGame, IPenguinState,
     OwlmanGame, IOwlmanState,
     SquaredanceGame, ISquaredanceState,
+    MegGame, IMegState,
+    YonmoqueGame, IYonmoqueState,
 };
 
 const games = new Map<string, typeof AmazonsGame | typeof BlamGame | typeof CannonGame |
@@ -426,7 +430,8 @@ const games = new Map<string, typeof AmazonsGame | typeof BlamGame | typeof Cann
                               typeof StorisendeGame | typeof TraxGame | typeof AmoebaGame |
                               typeof YavalathGame | typeof ConspirateursGame | typeof CatapultGame |
                               typeof BasaltGame | typeof ChurnGame | typeof PenguinGame |
-                              typeof OwlmanGame | typeof SquaredanceGame
+                              typeof OwlmanGame | typeof SquaredanceGame | typeof MegGame |
+                              typeof YonmoqueGame
                 >();
 // Manually add each game to the following array
 [
@@ -455,7 +460,7 @@ const games = new Map<string, typeof AmazonsGame | typeof BlamGame | typeof Cann
     HulaGame, KonaneGame, BlastRadiusGame, FramesGame, LoggerGame, SubdivisionGame, PylonGame,
     MoonSquadGame, JacynthGame, Pigs2Game, TerraceGame, CubeoGame, StorisendeGame, TraxGame,
     AmoebaGame, YavalathGame, ConspirateursGame, CatapultGame, BasaltGame, ChurnGame, PenguinGame,
-    OwlmanGame, SquaredanceGame,
+    OwlmanGame, SquaredanceGame, MegGame, YonmoqueGame,
 ].forEach((g) => {
     if (games.has(g.gameinfo.uid)) {
         throw new Error("Another game with the UID '" + g.gameinfo.uid + "' has already been used. Duplicates are not allowed.");
@@ -827,6 +832,10 @@ export const GameFactory = (game: string, ...args: any[]): GameBase|GameBaseSimu
             return new OwlmanGame(...args);
         case "squaredance":
             return new SquaredanceGame(...args);
+        case "meg":
+            return new MegGame(...args);
+        case "yonmoque":
+            return new YonmoqueGame(...args);
     }
     return;
 }
