@@ -1,4 +1,4 @@
-import { GameBase, IAPGameState, IClickResult, IIndividualState, IValidationResult } from "./_base";
+import { GameBase, IAPGameState, IClickResult, IIndividualState, IScores, IValidationResult } from "./_base";
 import { APGamesInformation } from "../schemas/gameinfo";
 import { APRenderRep, MarkerFlood, RowCol } from "@abstractplay/renderer/src/schemas/schema";
 import { APMoveResult } from "../schemas/moveresults";
@@ -34,7 +34,7 @@ export class YonmoqueGame extends GameBase {
         uid: "yonmoque",
         playercounts: [2],
         version: "20250126",
-        dateAdded: "2023-06-18",
+        dateAdded: "2025-01-27",
         // i18next.t("apgames:descriptions.yonmoque")
         description: "apgames:descriptions.yonmoque",
         urls: [
@@ -47,8 +47,8 @@ export class YonmoqueGame extends GameBase {
                 name: "Mitsuo Yamamoto",
             },
         ],
-        categories: ["goal>align", "mechanic>place", "mechanic>move", "mechanic>convert", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
-        flags: ["experimental", "limited-pieces", "custom-colours"]
+        categories: ["goal>align", "mechanic>asymmetry", "mechanic>place", "mechanic>move", "mechanic>convert", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
+        flags: ["limited-pieces", "custom-colours"]
     };
     public static coords2algebraic(x: number, y: number): string {
         return GameBase.coords2algebraic(x, y, 5);
@@ -517,6 +517,12 @@ export class YonmoqueGame extends GameBase {
                 break;
         }
         return resolved;
+    }
+
+    public getPlayersScores(): IScores[] {
+        return [
+            { name: i18next.t("apgames:status.PIECESINHAND"), scores: this.pieces }
+        ]
     }
 
     public getPlayerColour(p: playerid): number|string {
