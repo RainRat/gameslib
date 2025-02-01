@@ -34,7 +34,7 @@ export class ChameleonGame extends GameBase {
         uid: "chameleon",
         playercounts: [2],
         version: "20250130",
-        dateAdded: "2025-01-27",
+        dateAdded: "2025-01-31",
         // i18next.t("apgames:descriptions.chameleon")
         description: "apgames:descriptions.chameleon",
         urls: [
@@ -52,7 +52,7 @@ export class ChameleonGame extends GameBase {
             },
         ],
         categories: ["goal>annihilate", "goal>breakthrough", "mechanic>asymmetry", "mechanic>capture", "mechanic>move", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
-        flags: ["experimental", "perspective"],
+        flags: ["perspective", "automove"],
     };
     public static coords2algebraic(x: number, y: number): string {
         return GameBase.coords2algebraic(x, y, 5);
@@ -171,6 +171,16 @@ export class ChameleonGame extends GameBase {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // if there's a piece on your home row, you must capture it if you can
+        const onHome = [...this.board.entries()].filter(([,p]) => p.startsWith(this.currplayer === 1 ? "B" : "A")).map(([c,]) => ChameleonGame.algebraic2coords(c)).filter(([,y]) => y === (this.currplayer === 1 ? 4 : 0)).map(c => ChameleonGame.coords2algebraic(...c));
+        if (onHome.length > 0) {
+            for (const mv of moves) {
+                if (!mv.endsWith(`x${onHome[0]}`)) {
+                    moves.delete(mv);
                 }
             }
         }
