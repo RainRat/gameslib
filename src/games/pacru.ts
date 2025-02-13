@@ -1,8 +1,8 @@
-import { GameBase, IAPGameState, IClickResult, IIndividualState, IScores, IValidationResult } from "./_base";
+import { GameBase, IAPGameState, IClickResult, IIndividualState, IScores, IStatus, IValidationResult } from "./_base";
 import { APGamesInformation } from "../schemas/gameinfo";
 import { APRenderRep, RowCol } from "@abstractplay/renderer/src/schemas/schema";
 import { APMoveResult } from "../schemas/moveresults";
-import { deg2dir, dir2deg, Direction, normDeg, oppositeDirections, RectGrid, replacer, reviver, shuffle, smallestDegreeDiff, UserFacingError } from "../common";
+import { deg2dir, dir2deg, Direction, normDeg, oppositeDirections, RectGrid, replacer, reviver, rotateFacing, shuffle, smallestDegreeDiff, UserFacingError } from "../common";
 import i18next from "i18next";
 import { PacruGraph } from "./pacru/graph";
 import { Glyph } from "@abstractplay/renderer/build";
@@ -253,7 +253,7 @@ export class PacruGame extends GameBase {
 
         const mine = [...this.board.entries()].filter(([,{chevron}]) => chevron !== undefined && chevron.owner === player);
         // basic moves first
-        for (const [cell, {chevron}] of mine) {
+        for (const [cell, {tile, chevron}] of mine) {
             const pom = this.calcMvPower(cell);
             for (const dir of g.facing2dirs(chevron!.facing)) {
                 const ray = g.ray(cell, dir).slice(0, pom);
@@ -262,7 +262,7 @@ export class PacruGame extends GameBase {
                     const contents = this.board.get(next);
                     // once blocked is true, only connection jumps should be considered
                     if (blocked) {
-                        if (contents !== undefined && contents.tile === player && contents.chevron === undefined) {
+                        if (tile === player && contents !== undefined && contents.tile === player && contents.chevron === undefined) {
                             moves.push(`${cell}-${next}`);
                         }
                     }
@@ -283,7 +283,7 @@ export class PacruGame extends GameBase {
                             }
                         }
                         // otherwise, move if possible
-                        else if (contents === undefined || contents.tile === undefined || contents.tile === player) {
+                        else if ((contents === undefined || contents.tile === undefined || contents.tile === player)) {
                             moves.push(`${cell}-${next}`);
                         }
                     }
@@ -358,11 +358,10 @@ export class PacruGame extends GameBase {
             // if neutrals are avaialable, then blChange is the only option
             if (neutrals.length > 0) {
                 // but only return the effect if at least one is unoccupied
+                // (remember that you can place a tile into the cell you just moved into)
                 for (const n of neutrals) {
-                    // ignore to
-                    if (n === to) { continue; }
                     const cont = this.board.get(n);
-                    if (cont === undefined || cont.chevron === undefined) {
+                    if (n === to || cont === undefined || cont.chevron === undefined) {
                         set.add("blChange");
                         break;
                     }
@@ -455,6 +454,7 @@ export class PacruGame extends GameBase {
 
     public handleClick(move: string, row: number, col: number, piece?: string): IClickResult {
         try {
+            const g = new PacruGraph();
             let cell: string|undefined;
             if (row >= 0 && col >= 0) {
                 cell = PacruGame.coords2algebraic(col, row);
@@ -463,7 +463,12 @@ export class PacruGame extends GameBase {
 
             // empty move means selecting a chevron to move
             if (move === "" && cell !== undefined) {
-                newmove = cell;
+                const contents = this.board.get(cell);
+                if (contents !== undefined && contents.chevron !== undefined && contents.chevron.owner === this.currplayer) {
+                    newmove = cell;
+                } else {
+                    newmove = "";
+                }
             }
             // otherwise
             else {
@@ -532,17 +537,39 @@ export class PacruGame extends GameBase {
                     // select a destination
                     else if (move.length === 2) {
                         let operator = "-";
+                        let isOwn = false;
                         if (this.board.has(cell)) {
                             const contents = this.board.get(cell)!;
                             if (contents.chevron !== undefined) {
+                                if (contents.chevron.owner === this.currplayer) {
+                                    isOwn = true;
+                                }
                                 operator = "x";
                             }
                         }
-                        newmove = move + operator + cell;
-                        // if only a connection change, then auto-add the asterisk
-                        const sideEffects = this.getSideEffects(move, cell, operator === "x");
-                        if (sideEffects.has("connChange") && sideEffects.size === 1) {
-                            newmove += "(*)";
+                        if (isOwn) {
+                            newmove = cell;
+                        } else {
+                            newmove = move + operator + cell;
+                            // if only a connection change, then auto-add the asterisk
+                            const sideEffects = this.getSideEffects(move, cell, operator === "x");
+                            if (sideEffects.has("connChange") && sideEffects.size === 1) {
+                                newmove += "(*)";
+                            }
+                            // and if only blChange, check to see if only one neutral remains
+                            else if (sideEffects.has("blChange") && sideEffects.size === 1) {
+                                const neutrals: string[] = [];
+                                const ctr = g.cell2ctr(cell);
+                                for (const c of g.ctr2cells(ctr)) {
+                                    const contents = this.board.get(c);
+                                    if (contents === undefined) {
+                                        neutrals.push(c);
+                                    }
+                                }
+                                if (neutrals.length === 1) {
+                                    newmove += `(${neutrals[0]})`;
+                                }
+                            }
                         }
                     }
                     // otherwise we're selecting side effected cells
@@ -568,6 +595,14 @@ export class PacruGame extends GameBase {
                             }
                         }
                     }
+                }
+            }
+
+            // auto-trigger reorientation if the selected piece has no base moves
+            if (newmove.length === 2) {
+                const matches = this.baseMoves().filter(mv => mv.startsWith(newmove));
+                if (matches.length === 0) {
+                    newmove += "*";
                 }
             }
 
@@ -603,6 +638,12 @@ export class PacruGame extends GameBase {
 
         // check for reorientation trigger
         if (m.length === 3 && m.endsWith("*")) {
+            if (this.numTiles() < 2) {
+                result.valid = false;
+                result.message = i18next.t("apgames:validation.pacru.NOT_ENOUGH");
+                return result;
+            }
+
             result.valid = true;
             result.complete = -1;
             result.canrender = true;
@@ -639,6 +680,12 @@ export class PacruGame extends GameBase {
             if (orientation.length > 2 || orientation.length === 0) {
                 result.valid = false;
                 result.message = i18next.t("apgames:validation.pacru.OVER_ORIENT");
+                return result;
+            }
+            // you can afford it
+            if (this.numTiles() < 2 * orientation.length) {
+                result.valid = false;
+                result.message = i18next.t("apgames:validation.pacru.NOT_ENOUGH");
                 return result;
             }
 
@@ -712,12 +759,13 @@ export class PacruGame extends GameBase {
                 result.message = i18next.t("apgames:validation._general.UNCONTROLLED");
                 return result;
             }
-            // has legal moves
-            if (baseMoves.filter(mv => mv.startsWith(from)).length === 0) {
-                result.valid = false;
-                result.message = i18next.t("apgames:validation._general.NO_MOVES", {where: from});
-                return result;
-            }
+            // CAN'T DO THE FOLLOWING BECAUSE YOU STILL NEED TO BE ABLE TO REORIENT
+            // // has legal moves
+            // if (baseMoves.filter(mv => mv.startsWith(from)).length === 0) {
+            //     result.valid = false;
+            //     result.message = i18next.t("apgames:validation._general.NO_MOVES", {where: from});
+            //     return result;
+            // }
 
             // if no to, return partial
             if (to === undefined) {
@@ -763,7 +811,7 @@ export class PacruGame extends GameBase {
                         // can't land on enemy tiles
                         if (tContents.tile !== undefined && tContents.tile !== this.currplayer) {
                             result.valid = false;
-                            result.message = i18next.t("apgames:validation._general.SELFCAPTURE");
+                            result.message = i18next.t("apgames:validation.pacru.ENEMY_TILE");
                             return result;
                         }
                         // must use correct operator
@@ -784,9 +832,16 @@ export class PacruGame extends GameBase {
                 }
                 // check that move is in the base move list
                 if (!baseMoves.includes(`${from}${isCapture ? "x" : "-"}${to}`)) {
-                    result.valid = false;
-                    result.message = i18next.t("apgames:validation._general.INVALID_MOVE", {move: `${from}${isCapture ? "x" : "-"}${to}`});
-                    return result;
+                    // give better error message for captures
+                    if (isCapture) {
+                        result.valid = false;
+                        result.message = i18next.t("apgames:validation.pacru.BAD_CAPTURE", {move: `${from}${isCapture ? "x" : "-"}${to}`});
+                        return result;
+                    } else {
+                        result.valid = false;
+                        result.message = i18next.t("apgames:validation._general.INVALID_MOVE", {move: `${from}${isCapture ? "x" : "-"}${to}`});
+                        return result;
+                    }
                 }
 
                 // if no cells, return either partial or complete, depending on side effects
@@ -826,45 +881,90 @@ export class PacruGame extends GameBase {
                 // otherwise validate the side effected cells
                 else {
                     const sideEffects = this.getSideEffects(from, to, isCapture);
+                    // I originally looped through all the cells, but this becomes a problem when
+                    // there are multiple effects because the order of the cells is not certain.
+                    // Instead, go with the "at least one" approach.
+
+                    // `*` is only valid in connection changes
+                    if (cells.includes("*") && !sideEffects.has("connChange")) {
+                        result.valid = false;
+                        result.message = i18next.t("apgames:validation.pacru.BAD_CONNECTION");
+                        return result;
+                    }
+                    // make sure all cells are well-formed
                     for (const cell of cells) {
-                        // valid cell
-                        if (cell === "*") {
-                            if (!sideEffects.has("connChange")) {
+                        if (cell !== "*" && !g.graph.hasNode(cell)) {
+                            result.valid = false;
+                            result.message = i18next.t("apgames:validation._general.INVALIDCELL", {cell});
+                            return result;
+                        }
+                    }
+                    const ctr = g.cell2ctr(to);
+                    const blCells = g.ctr2cells(ctr);
+                    if (sideEffects.has("blChange") || sideEffects.has("blTransform")) {
+                        // need to validate that selected cells are within the bls where necessary
+                        const within = cells.filter(c => blCells.includes(c) || c === "*");
+                        if (within.length === 0) {
+                            result.valid = false;
+                            result.message = i18next.t("apgames:validation.pacru.WITHIN_BL");
+                            return result;
+                        }
+                        // blChange: at least one is neutral
+                        if (sideEffects.has("blChange") && !cells.includes("*")) {
+                            const neutral = cells.filter(c =>this.board.get(c) === undefined || (c === to && !isCapture));
+                            if (neutral.length === 0) {
                                 result.valid = false;
-                                result.message = i18next.t("apgames:validation.pacru.BAD_CONNECTION");
+                                result.message = i18next.t("apgames:validation.pacru.ONLY_NEUTRAL");
                                 return result;
                             }
-                        } else {
-                            if (!g.graph.hasNode(cell)) {
+                        }
+                        // blTransform: at least one is opposing
+                        else if (!cells.includes("*")) {
+                            const opposing = cells.filter(c => this.board.has(c) && this.board.get(c)!.tile !== undefined && this.board.get(c)!.tile !== this.currplayer && this.board.get(c)!.chevron === undefined);
+                            if (opposing.length === 0) {
                                 result.valid = false;
-                                result.message = i18next.t("apgames:validation._general.INVALIDCELL", {cell});
+                                result.message = i18next.t("apgames:validation.pacru.ONLY_OPPOSING");
                                 return result;
-                            }
-                            const cContents = this.board.get(cell);
-                            if (sideEffects.has("blChange")) {
-                                if (cContents !== undefined) {
-                                    result.valid = false;
-                                    result.message = i18next.t("apgames:validation.pacru.ONLY_NEUTRAL");
-                                    return result;
-                                }
-                            }
-                            else if (sideEffects.has("blTransform")) {
-                                if (cContents === undefined || cContents.chevron !== undefined || cContents.tile === this.currplayer) {
-                                    result.valid = false;
-                                    result.message = i18next.t("apgames:validation.pacru.ONLY_OPPOSING");
-                                    return result;
-                                }
                             }
                         }
                     }
-                    // see if there's a meeting
+                    for (const cell of cells) {
+                        if (cell === "*") { continue; }
+                        const contents = this.board.get(cell);
+                        // none of the cells may have a chevron, except `to`
+                        if (contents !== undefined && contents.chevron !== undefined) {
+                            result.valid = false;
+                            result.message = i18next.t("apgames:validation.pacru.ONLY_UNOCCUPIED");
+                            return result;
+                        }
+                        // none of the cells may have your own tile
+                        if (contents !== undefined && contents.tile !== undefined && contents.tile === this.currplayer) {
+                            result.valid = false;
+                            result.message = i18next.t("apgames:validation.pacru.ONLY_OPPOSING");
+                            return result;
+                        }
+                    }
+
+                    // see if there's a meeting (but don't pass cells!)
+                    // if you pass the cells, and the cells change the meeting threshold,
+                    // then isMeeting will be incorrectly false
                     const cloned = this.clone();
-                    cloned.executeMove(m);
+                    cloned.executeMove(`${from}${isCapture ? "x" : "-"}${to}`);
                     const isMeeting = cloned.isMeeting(to);
-                    const target = isMeeting ? 2 : 1;
+                    let target = 0;
+                    if (sideEffects.size > 0) {
+                        target++;
+                    }
+                    if (isMeeting) {
+                        target++;
+                    }
                     // see if enough cells have been provided
-                    // it will only be untrue if a meeting has occurred
-                    if (cells.length < target) {
+                    if (cells.length > target) {
+                        result.valid = false;
+                        result.message = i18next.t("apgames:validation.pacru.TOO_MANY_CELLS");
+                        return result;
+                    }
+                    else if (cells.length < target) {
                         result.valid = true;
                         result.complete = -1;
                         result.canrender = true;
@@ -992,7 +1092,8 @@ export class PacruGame extends GameBase {
                 }
             }
             // otherwise just set the tile as belonging to you
-            // clobbers any chevrons because they shouldn't be there in the first place
+            // this code used to clobber chevrons, but it can't because you may
+            // also claim the neutral cell you just moved into on a blChange
             else {
                 // check for connection change
                 if (cells.includes("*")) {
@@ -1007,11 +1108,11 @@ export class PacruGame extends GameBase {
                 for (const cell of cells) {
                     if (cell === "*") { continue; }
                     const contents = this.board.get(cell);
-                    this.board.set(cell, {tile: this.currplayer})
-                    if (contents === undefined) {
+                    this.board.set(cell, {tile: this.currplayer, chevron: contents?.chevron})
+                    if (contents === undefined || (cell === to && contents.tile === undefined)) {
                         this.results.push({type: "claim", where: cell});
                     } else {
-                        this.results.push({type: "convert", what: contents.tile!.toString(), into: this.currplayer.toString(), where: cell});
+                        this.results.push({type: "convert", what: contents.tile?.toString() || "neutral", into: this.currplayer.toString(), where: cell});
                     }
                 }
             }
@@ -1029,6 +1130,13 @@ export class PacruGame extends GameBase {
             }
         }
         return count;
+    }
+
+    public numTiles(p?: playerid): number {
+        if (p === undefined) {
+            p = this.currplayer;
+        }
+        return [...this.board.values()].filter(({tile}) => tile === p).length;
     }
 
     public move(m: string, {trusted = false, partial = false} = {}): PacruGame {
@@ -1062,8 +1170,13 @@ export class PacruGame extends GameBase {
             // orienting first
             if (isOrienting) {
                 // add neighbouring cells
-                for (const cell of g.neighbours(from)) {
-                    this.highlights.push(cell);
+                const {chevron} = this.board.get(from)!;
+                const dirs = [-90, -45, 45, 90].map(d => rotateFacing(chevron!.facing, d));
+                for (const dir of dirs) {
+                    const ray = g.ray(from, dir);
+                    if (ray.length > 0) {
+                        this.highlights.push(ray[0]);
+                    }
                 }
                 const [fx, fy] = g.algebraic2coords(from);
                 if (fx === 0) {
@@ -1088,10 +1201,11 @@ export class PacruGame extends GameBase {
                 // no cells provided but side effects, then highlight
                 if (cells === undefined && sideEffects.size > 0) {
                     this.executeMove(m);
+                    const toHasTile = this.board.get(to)!.tile !== undefined;
                     const ctr = g.cell2ctr(to);
                     const blcells = g.ctr2cells(ctr);
                     for (const cell of blcells) {
-                        if (sideEffects.has("blChange") && !this.board.has(cell)) {
+                        if (sideEffects.has("blChange") && (!this.board.has(cell) || (cell === to && !toHasTile))) {
                             this.highlights.push(cell);
                         } else if (sideEffects.has("blTransform")) {
                             const contents = this.board.get(cell)!;
@@ -1108,18 +1222,21 @@ export class PacruGame extends GameBase {
                 // or if a cell was provided, look for meetings
                 if ((cells === undefined && sideEffects.size === 0) || (cells !== undefined && cells.length > 0)) {
                     this.executeMove(m);
-                    if (this.isMeeting(to)) {
-                        for (const cell of g.graph.nodes()) {
-                            const contents = this.board.get(cell);
-                            if (contents === undefined || (contents.tile !== this.currplayer && contents.chevron === undefined)) {
-                                this.highlights.push(cell);
-                            }
-                        }
-                    }
+                    // VISUALLY OVERWHELMING
+                    // SKIPPING MEETING HIGHLIGHTS FOR NOW
+                    // if (this.isMeeting(to)) {
+                    //     for (const cell of g.graph.nodes()) {
+                    //         const contents = this.board.get(cell);
+                    //         if (contents === undefined || (contents.tile !== this.currplayer && contents.chevron === undefined)) {
+                    //             this.highlights.push(cell);
+                    //         }
+                    //     }
+                    // }
                 }
             }
             // highlight relinquishments
             else if (orientation !== undefined) {
+                this.executeMove(m);
                 for (const cell of g.graph.nodes()) {
                     const contents = this.board.get(cell);
                     if (contents !== undefined && contents.tile === this.currplayer && contents.chevron === undefined) {
@@ -1190,13 +1307,7 @@ export class PacruGame extends GameBase {
     }
 
     public getPlayerScore(player: number): number {
-        let count = 0;
-        for (const {tile} of this.board.values()) {
-            if (tile === player) {
-                count++;
-            }
-        }
-        return this.targetScore - count;
+        return this.numTiles(player as playerid);
     }
 
     public getPlayersScores(): IScores[] {
@@ -1204,14 +1315,18 @@ export class PacruGame extends GameBase {
         for (let p = 1; p <= this.numplayers; p++) {
             scores.push(this.getPlayerScore(p));
         }
-        return [{ name: i18next.t("apgames:status.pacru"), scores }];
+        return [{ name: i18next.t("apgames:status.pacru.TILES"), scores }];
+    }
+
+    public statuses(): IStatus[] {
+        return [{ key: i18next.t("apgames:status.pacru.TARGET"), value: [this.targetScore.toString()] }];
     }
 
     protected checkEOG(): PacruGame {
         let reason = "";
         // check scores first
         for (let p = 1; p <= this.numplayers; p++) {
-            if (this.getPlayerScore(p) <= 0) {
+            if (this.getPlayerScore(p) >= this.targetScore) {
                 this.gameover = true;
                 this.winner = [p as playerid];
                 reason = "score";
@@ -1335,6 +1450,7 @@ export class PacruGame extends GameBase {
                 height: 9,
                 tileWidth: 3,
                 tileHeight: 3,
+                tileLineMult: 5,
                 buffer: this.buffers.length === 0 ? undefined : {
                     separated: true,
                     width: 0.2,

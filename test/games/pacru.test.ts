@@ -76,6 +76,23 @@ describe("Pacru", () => {
         effects = g.getSideEffects("d9", "d6", true);
         expect(effects.size).equal(1);
         expect(effects.has("blTransform")).to.be.true;
+
+        // blChange triggers even when you move into last neutral cell
+        g = new PacruGame(2);
+        for (const cell of graph.ctr2cells("e8")) {
+            if (cell === "f8") {
+                continue
+            } else {
+                g.board.set(cell, {tile: 2});
+            }
+        }
+        expect(g.baseMoves().includes("g9-f8")).to.be.true;
+        effects = g.getSideEffects("g9", "f8");
+        expect(effects.size).equal(1);
+        expect(effects.has("blChange")).to.be.true;
+        const results = g.validateMove("g9-f8(f8)");
+        expect(results.valid).to.be.true;
+        expect(results.complete).equal(1);
     });
 
     it ("Pincers detected and executed correctly", () => {
@@ -126,6 +143,58 @@ describe("Pacru", () => {
         }
         g.executeMove("g9-g8");
         expect(g.isMeeting("g8")).to.be.false;
+
+        // validation edge case where your meeting drops the threshold
+        g = new PacruGame(2);
+        g.board.set("g9", {tile: 1, chevron: {owner: 1, facing: "S"}});
+        g.board.set("g8", {tile: 1});
+        g.board.set("g7", {tile: 1, chevron: {owner: 1, facing: "N"}});
+        for (const cell of graph.ctr2cells("e5")) {
+            g.board.set(cell, {tile: 2});
+        }
+        const results = g.validateMove("g9-g8(e5)");
+        expect(results.valid).to.be.true;
+        expect(results.complete).equal(1);
+    });
+
+    it("Cell validation edge cases", () => {
+        // combination capture + blChange + meeting
+        const graph = new PacruGraph();
+        const g = new PacruGame(2);
+        for (const cell of graph.ctr2cells("b5")) {
+            g.board.set(cell, {tile: 2});
+        }
+        g.board.set("d3", {chevron: {owner: 1, facing: "N"}});
+        g.board.set("e3", {chevron: {owner: 1, facing: "N"}});
+        g.board.set("e4", {chevron: {owner: 2, facing: "N"}});
+        g.board.set("e5", {tile: 1, chevron: {owner: 1, facing: "S"}});
+        g.board.set("i8", {tile: 1});
+        let result = g.validateMove("e3xe4(e6, i9)");
+        expect(result.valid).to.be.true;
+        expect(result.complete).equal(1);
+        // move the first claim to outside the bl
+        result = g.validateMove("e3xe4(e7, i9)");
+        expect(result.valid).to.be.false;
+        // try to claim the cell you just captured
+        result = g.validateMove("e3xe4(e4, i9)");
+        expect(result.valid).to.be.false;
+        // try to claim an occupied cell
+        result = g.validateMove("e3xe4(e6, g9)");
+        expect(result.valid).to.be.false;
+        // try to claim too many cells
+        result = g.validateMove("e3xe4(e6, i9, i8)");
+        expect(result.valid).to.be.false;
+        // try to claim your own tile
+        result = g.validateMove("e3xe4(e6, i8)");
+        expect(result.valid).to.be.false;
+    });
+
+    it("Connection change bug", () => {
+        const g = new PacruGame(bugstate);
+        const results = g.validateMove("f7-i4(*)");
+        expect(results.valid).to.be.true;
+        expect(results.complete).equal(1);
     });
 });
 
+const bugstate = `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`;
