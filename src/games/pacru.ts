@@ -37,14 +37,14 @@ export interface IPacruState extends IAPGameState {
 };
 
 const start2p: [string, CellContents][] = [
-    ["a9", {chevron: {owner: 1, facing: "SE"}}],
-    ["c9", {chevron: {owner: 2, facing: "S"}}],
-    ["g9", {chevron: {owner: 1, facing: "S"}}],
-    ["a5", {chevron: {owner: 2, facing: "E"}}],
-    ["i5", {chevron: {owner: 1, facing: "W"}}],
-    ["c1", {chevron: {owner: 2, facing: "N"}}],
-    ["g1", {chevron: {owner: 1, facing: "N"}}],
-    ["i1", {chevron: {owner: 2, facing: "NW"}}],
+    ["a3", {chevron: {owner: 1, facing: "E"}}],
+    ["e1", {chevron: {owner: 1, facing: "N"}}],
+    ["i3", {chevron: {owner: 1, facing: "W"}}],
+    ["i9", {chevron: {owner: 1, facing: "SW"}}],
+    ["a7", {chevron: {owner: 2, facing: "E"}}],
+    ["e9", {chevron: {owner: 2, facing: "S"}}],
+    ["i7", {chevron: {owner: 2, facing: "W"}}],
+    ["a1", {chevron: {owner: 2, facing: "NE"}}],
 ];
 const start3p: [string, CellContents][] = [
     ["c9", {chevron: {owner: 2, facing: "S"}}],
@@ -589,7 +589,7 @@ export class PacruGame extends GameBase {
                                 } else {
                                     cells.add(cell);
                                 }
-                                newmove = move.substring(0, idx) + "(" + [...cells].join(",") + ")";
+                                newmove = move.substring(0, idx) + (cells.size > 0 ? "(" + [...cells].join(",") + ")" : "");
                             } else {
                                 newmove = move + "(" + cell + ")";
                             }
@@ -945,11 +945,13 @@ export class PacruGame extends GameBase {
                         }
                     }
 
-                    // see if there's a meeting (but don't pass cells!)
-                    // if you pass the cells, and the cells change the meeting threshold,
-                    // then isMeeting will be incorrectly false
+                    // see if there's a meeting
+                    // usually you don't pass the cells to avoid changing the meeting threshold
+                    // but if the first cell is the same as `to`, then you have to pass it
+                    // or the meeting similarly won't trigger
                     const cloned = this.clone();
-                    cloned.executeMove(`${from}${isCapture ? "x" : "-"}${to}`);
+                    const cellIsTo = cells[0] === to;
+                    cloned.executeMove(`${from}${isCapture ? "x" : "-"}${to}${cellIsTo ? `(${to})` : ""}`);
                     const isMeeting = cloned.isMeeting(to);
                     let target = 0;
                     if (sideEffects.size > 0) {
@@ -1463,9 +1465,9 @@ export class PacruGame extends GameBase {
         };
 
         // Add annotations
-        if (this.stack[this.stack.length - 1]._results.length > 0) {
+        if (this.results.length > 0) {
             rep.annotations = [];
-            for (const move of this.stack[this.stack.length - 1]._results) {
+            for (const move of this.results) {
                 if (move.type === "move") {
                     const [fromX, fromY] = PacruGame.algebraic2coords(move.from);
                     const [toX, toY] = PacruGame.algebraic2coords(move.to);
