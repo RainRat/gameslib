@@ -392,7 +392,7 @@ export class CifraGame extends GameBase {
         // setup scenarios first
         if (this.stack.length === 1) {
             const [shade, pos] = m.split(",")
-            if ( (shade === "light" || shade === "dark") && (pos === "top" || pos === "bottom") ) {
+            if ( (shade === "light" || shade === "dark") && (pos === "top" || pos === "bottom" || pos === "left" || pos === "right") ) {
                 result.valid = true;
                 result.complete = 1;
                 result.message = i18next.t("apgames:validation._general.VALID_MOVE");
@@ -475,6 +475,10 @@ export class CifraGame extends GameBase {
                 result.complete = -1;
                 result.canrender = true;
                 result.message = i18next.t("apgames:validation.cifra.PARTIAL");
+                return result;
+            } else if (m.length === 2) {
+                result.valid = false;
+                result.message = i18next.t("apgames:validation._general.NO_MOVES", {where: m});
                 return result;
             } else {
                 result.valid = false;
@@ -800,7 +804,9 @@ export class CifraGame extends GameBase {
                     throw new Error(`Unrecognized firstPos: ${this.firstPos}`);
             }
         }
-        let colours: {side: "N" | "E" | "S" | "W";colour: PositiveInteger | Colourstrings | Colourfuncs;}[];
+        const c1 = this.getPlayerColour(1);
+        const c2 = this.getPlayerColour(2);
+    let colours: {side: "N" | "E" | "S" | "W";colour: PositiveInteger | Colourstrings | Colourfuncs;}[];
         if (show === undefined) {
             colours = [
                 {
@@ -821,8 +827,6 @@ export class CifraGame extends GameBase {
                 },
             ];
         } else {
-            const c1 = this.getPlayerColour(1);
-            const c2 = this.getPlayerColour(2);
             colours = [
                 {
                     side: show[0],
@@ -843,41 +847,41 @@ export class CifraGame extends GameBase {
         const legend: {[k: string]: Glyph|[Glyph, ...Glyph[]]} = {
             A: {
                 name: "piece",
-                colour: this.getPlayerColour(1),
+                colour: c1,
             },
             B: {
                 name: "piece",
-                colour: this.getPlayerColour(2),
+                colour: c2,
             },
             AK: {
                 name: "piece-chariot",
-                colour: this.getPlayerColour(1),
+                colour: c1,
             },
             BK: {
                 name: "piece-chariot",
-                colour: this.getPlayerColour(2),
+                colour: c2,
             },
         };
         for (let i = 1; i <= this.boardSize; i++) {
             legend[`A${i}`] = [
                 {
                     name: "piece",
-                    colour: this.getPlayerColour(1),
+                    colour: c1,
                 },
                 {
                     text: i.toString(),
-                    colour: "#000",
+                    colour: c1 === "_context_background" ? "_context_strokes" : "#000",
                     scale: 0.75,
                 }
             ];
             legend[`B${i}`] = [
                 {
                     name: "piece",
-                    colour: this.getPlayerColour(2),
+                    colour: c2,
                 },
                 {
                     text: i.toString(),
-                    colour: "#000",
+                    colour: c2 === "_context_background" ? "_context_strokes" : "#000",
                     scale: 0.75,
                 }
             ];
