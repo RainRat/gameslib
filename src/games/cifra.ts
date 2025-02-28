@@ -16,6 +16,7 @@ export interface IMoveState extends IIndividualState {
     currplayer: playerid;
     board: Map<string, CellContents>;
     lastmove?: string;
+    firstChoice?: string;
 };
 
 export interface ICifraState extends IAPGameState {
@@ -74,6 +75,7 @@ export class CifraGame extends GameBase {
     public results: Array<APMoveResult> = [];
     public startpos: Array<Shade>;
     private highlights: string[] = [];
+    public firstChoice?: string;
 
     constructor(state?: ICifraState | string, variants?: string[]) {
         super();
@@ -127,6 +129,7 @@ export class CifraGame extends GameBase {
         this.board = new Map(state.board);
         this.lastmove = state.lastmove;
         this.results = [...state._results];
+        this.firstChoice = state.firstChoice;
         return this;
     }
 
@@ -149,7 +152,7 @@ export class CifraGame extends GameBase {
         if (this.gameover) { return []; }
 
         // side choosing
-        if (this.stack.length === 1) {
+        if (this.stack.length === 1 || this.firstChoice === undefined) {
             return ["light,top", "light,bottom", "dark,top", "dark,bottom","light,left", "light,right", "dark,left", "dark,right"];
         }
 
@@ -197,7 +200,7 @@ export class CifraGame extends GameBase {
     }
 
     public getButtons(): ICustomButton[] {
-        if (this.stack.length === 1) {
+        if (this.stack.length === 1 || this.firstChoice === undefined) {
             return [
                 { label: "cifra.lt", move: "light,top" },
                 { label: "cifra.lb", move: "light,bottom" },
@@ -213,7 +216,7 @@ export class CifraGame extends GameBase {
     }
 
     public randomMove(): string {
-        if (this.stack.length === 1) {
+        if (this.stack.length === 1 || this.firstChoice === undefined) {
             const shuffled = shuffle(["light,top", "light,bottom", "dark,top", "dark,bottom","light,left", "light,right", "dark,left", "dark,right"]) as string[];
             return shuffled[0];
         } else if ( (this.variants.includes("sum") || this.variants.includes("king")) && this.stack.length <= 3) {
@@ -250,10 +253,10 @@ export class CifraGame extends GameBase {
     }
 
     public getHomeRowCol(p: playerid): {col?: number; row?: number}|undefined {
-        if (this.stack.length < 2) {
+        if (this.stack.length < 2 || this.firstChoice === undefined) {
             return undefined;
         }
-        const [, position] = this.stack[1].lastmove!.split(",");
+        const [, position] = this.firstChoice.split(",");
         const num1 = (position === "top" || position === "left") ? 0 : this.boardSize - 1;
         const num2 = num1 === 0 ? this.boardSize - 1 : 0;
         if (position === "top" || position === "bottom") {
@@ -264,28 +267,28 @@ export class CifraGame extends GameBase {
     }
 
     public get firstPos(): string|undefined {
-        if (this.stack.length < 2) {
+        if (this.stack.length < 2 || this.firstChoice === undefined) {
             return undefined;
         }
-        const [, position] = this.stack[1].lastmove!.split(",");
+        const [, position] = this.firstChoice.split(",");
         return position;
     }
 
     public getPlayerColour(p: playerid): number|string {
-        if (this.stack.length === 1) {
+        if (this.stack.length === 1 || this.firstChoice === undefined) {
             return "#808080";
         }
-        const [shade,] = this.stack[1].lastmove!.split(",");
+        const [shade,] = this.firstChoice.split(",");
         const c1 = shade === "light" ? "_context_background" : 2;
         const c2 = c1 === 2 ? "_context_background" : 2;
         return p === 1 ? c1 : c2;
     }
 
     public getPlayerShade(p: playerid): Shade|undefined {
-        if (this.stack.length === 1) {
+        if (this.stack.length === 1 || this.firstChoice === undefined) {
             return undefined
         }
-        const [shade,] = this.stack[1].lastmove!.split(",");
+        const [shade,] = this.firstChoice.split(",");
         const c1 = shade === "light" ? "L" : "D";
         const c2 = c1 === "L" ? "D" : "L";
         return p === 1 ? c1 : c2;
@@ -378,7 +381,7 @@ export class CifraGame extends GameBase {
 
         if (m.length === 0) {
             let context = "play";
-            if (this.stack.length === 1) {
+            if (this.stack.length === 1 || this.firstChoice === undefined) {
                 context = "choose";
             } else if ((this.variants.includes("king") || this.variants.includes("sum")) && this.stack.length <= 2) {
                 context = "setup";
@@ -390,7 +393,7 @@ export class CifraGame extends GameBase {
         }
 
         // setup scenarios first
-        if (this.stack.length === 1) {
+        if (this.stack.length === 1 || this.firstChoice === undefined) {
             const [shade, pos] = m.split(",")
             if ( (shade === "light" || shade === "dark") && (pos === "top" || pos === "bottom" || pos === "left" || pos === "right") ) {
                 result.valid = true;
@@ -531,7 +534,8 @@ export class CifraGame extends GameBase {
         }
 
         // choosing sides
-        if (this.stack.length === 1) {
+        if (this.stack.length === 1 || this.firstChoice === undefined) {
+            this.firstChoice = m;
             this.results.push({type: "affiliate", which: m});
             // if in default Dash mode, populate the board
             if (!this.variants.includes("king") && !this.variants.includes("sum")) {
@@ -726,6 +730,7 @@ export class CifraGame extends GameBase {
             currplayer: this.currplayer,
             lastmove: this.lastmove,
             board: new Map(this.board),
+            firstChoice: this.firstChoice,
         };
     }
 
