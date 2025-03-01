@@ -152,7 +152,7 @@ export class CifraGame extends GameBase {
         if (this.gameover) { return []; }
 
         // side choosing
-        if (this.stack.length === 1 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             return ["light,top", "light,bottom", "dark,top", "dark,bottom","light,left", "light,right", "dark,left", "dark,right"];
         }
 
@@ -200,7 +200,7 @@ export class CifraGame extends GameBase {
     }
 
     public getButtons(): ICustomButton[] {
-        if (this.stack.length === 1 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             return [
                 { label: "cifra.lt", move: "light,top" },
                 { label: "cifra.lb", move: "light,bottom" },
@@ -216,7 +216,7 @@ export class CifraGame extends GameBase {
     }
 
     public randomMove(): string {
-        if (this.stack.length === 1 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             const shuffled = shuffle(["light,top", "light,bottom", "dark,top", "dark,bottom","light,left", "light,right", "dark,left", "dark,right"]) as string[];
             return shuffled[0];
         } else if ( (this.variants.includes("sum") || this.variants.includes("king")) && this.stack.length <= 3) {
@@ -253,7 +253,7 @@ export class CifraGame extends GameBase {
     }
 
     public getHomeRowCol(p: playerid): {col?: number; row?: number}|undefined {
-        if (this.stack.length < 2 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             return undefined;
         }
         const [, position] = this.firstChoice.split(",");
@@ -267,7 +267,7 @@ export class CifraGame extends GameBase {
     }
 
     public get firstPos(): string|undefined {
-        if (this.stack.length < 2 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             return undefined;
         }
         const [, position] = this.firstChoice.split(",");
@@ -275,7 +275,7 @@ export class CifraGame extends GameBase {
     }
 
     public getPlayerColour(p: playerid): number|string {
-        if (this.stack.length === 1 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             return "#808080";
         }
         const [shade,] = this.firstChoice.split(",");
@@ -285,7 +285,7 @@ export class CifraGame extends GameBase {
     }
 
     public getPlayerShade(p: playerid): Shade|undefined {
-        if (this.stack.length === 1 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             return undefined
         }
         const [shade,] = this.firstChoice.split(",");
@@ -381,7 +381,7 @@ export class CifraGame extends GameBase {
 
         if (m.length === 0) {
             let context = "play";
-            if (this.stack.length === 1 || this.firstChoice === undefined) {
+            if (this.firstChoice === undefined) {
                 context = "choose";
             } else if ((this.variants.includes("king") || this.variants.includes("sum")) && this.stack.length <= 2) {
                 context = "setup";
@@ -393,7 +393,7 @@ export class CifraGame extends GameBase {
         }
 
         // setup scenarios first
-        if (this.stack.length === 1 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             const [shade, pos] = m.split(",")
             if ( (shade === "light" || shade === "dark") && (pos === "top" || pos === "bottom" || pos === "left" || pos === "right") ) {
                 result.valid = true;
@@ -534,19 +534,16 @@ export class CifraGame extends GameBase {
         }
 
         // choosing sides
-        if (this.stack.length === 1 || this.firstChoice === undefined) {
+        if (this.firstChoice === undefined) {
             this.firstChoice = m;
             this.results.push({type: "affiliate", which: m});
             // if in default Dash mode, populate the board
             if (!this.variants.includes("king") && !this.variants.includes("sum")) {
-                const [, pos] = m.split(",");
-                const row1 = pos === "top" ? 0 : this.boardSize - 1;
-                const row2 = row1 === 0 ? this.boardSize - 1 : 0;
-                for (let col = 0; col < this.boardSize; col++) {
-                    const cell1 = this.coords2algebraic(col, row1);
-                    this.board.set(cell1, 1);
-                    const cell2 = this.coords2algebraic(col, row2);
-                    this.board.set(cell2, 2);
+                for (let p = 1; p <= this.numplayers; p++) {
+                    const home = this.getHomeCells(p as playerid)!;
+                    for (const cell of home) {
+                        this.board.set(cell, p as playerid);
+                    }
                 }
             }
         }
@@ -637,6 +634,16 @@ export class CifraGame extends GameBase {
         return owned.length - locked.length;
     }
 
+    public getNumLocked(p?: playerid): number {
+        if (p === undefined) {
+            p = this.currplayer;
+        }
+        const lockedCells = this.getHomeCells(p === 1 ? 2 : 1);
+        const owned = [...this.board.entries()].filter(([,pc]) => pc === p || (pc as ContentsSum).p === p);
+        const locked = owned.filter(([c,]) => lockedCells !== undefined && lockedCells.includes(c));
+        return locked.length
+    }
+
     public findKing(p: playerid): string|null {
         if (!this.variants.includes("king")) {
             throw new Error("You should never use this function outside of King games.");
@@ -665,7 +672,40 @@ export class CifraGame extends GameBase {
                     this.winner = [prev];
                 }
             }
-            // Dash or Sum mode
+            // Sum mode
+            else if (this.variants.includes("sum")) {
+                // game ends as soon as one player has no living pieces
+                // (living === !locked)
+                if (this.getNumAlive(1) === 0 || this.getNumAlive(2) === 0) {
+                    this.gameover = true;
+                    const s1 = this.getPlayerScore(1);
+                    const s2 = this.getPlayerScore(2);
+                    const l1 = this.getNumLocked(1);
+                    const l2 = this.getNumLocked(2);
+                    const t1 = this.getNumAlive(1);
+                    const t2 = this.getNumAlive(2);
+                    if (s1 > s2) {
+                        this.winner = [1];
+                    } else if (s2 > s1) {
+                        this.winner = [2];
+                    } else {
+                        if (l1 > l2) {
+                            this.winner = [1];
+                        } else if (l2 > l1) {
+                            this.winner = [2];
+                        } else {
+                            if (t1 > t2) {
+                                this.winner = [1];
+                            } else if (t2 > t1) {
+                                this.winner = [2];
+                            } else {
+                                this.winner = [1,2];
+                            }
+                        }
+                    }
+                }
+            }
+            // Dash mode
             else {
                 // game ends as soon as one player has no living pieces
                 // (living === !locked)
