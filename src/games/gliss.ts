@@ -49,7 +49,8 @@ export class GlissGame extends GameBase {
             }
         ],
         variants: [
-            { uid: "size-16", group: "board" },
+            { uid: "size-12", group: "board" },
+            { uid: "#board" },
             { uid: "size-19", group: "board" },
         ],
         categories: ["goal>annihilate", "goal>score>race", "mechanic>place", "mechanic>capture", "mechanic>move", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
@@ -805,7 +806,11 @@ export class GlissGame extends GameBase {
                 const enemyTowers = cloned.getTowers(this.currplayer === 1 ? 2 : 1).flat();
                 let conversions: string|undefined;
                 if (enemyTowers.includes(newglider.dock)) {
-                    conversions = newglider.dock;
+                    // check for illegal shape
+                    cloned.board.set(newglider.dock, this.currplayer);
+                    if (cloned.validShapes(this.currplayer)) {
+                        conversions = newglider.dock;
+                    }
                 }
 
                 // record the movement first, but don't execute yet
