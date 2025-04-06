@@ -44,12 +44,19 @@ export class SympleGame extends GameBase {
                 type: "designer",
                 name: "Christian Freeling",
                 urls: ["https://www.mindsports.nl/"],
+                apid: "b12bd9cd-59cf-49c7-815f-af877e46896a",
             },
             {
                 type: "designer",
                 name: "Benedikt Rosenau",
                 urls: ["https://boardgamegeek.com/boardgamedesigner/15917/benedikt-rosenau"],
-            }
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
+            },
         ],
         categories: ["goal>score>eog", "mechanic>place",  "board>shape>rect", "board>connect>rect", "components>simple>1per"],
         flags: ["scores", "no-moves", "custom-randomization"],

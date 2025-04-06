@@ -38,7 +38,14 @@ export class SlitherGame extends GameBase {
                 type: "designer",
                 name: "Corey Clark",
                 urls: ["https://boardgamegeek.com/boardgamedesigner/38921/corey-clark"],
-            }
+                apid: "d1cd6092-7429-4241-826b-bbc157d08d93",
+            },
+            {
+                type: "coder",
+                name: "ypaul",
+                urls: [],
+                apid: "46f6da78-be02-4469-94cb-52f17078e9c1",
+            },
         ],
         variants: [
             {

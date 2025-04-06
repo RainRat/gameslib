@@ -38,8 +38,15 @@ export class ConectGame extends GameBase {
             {
                 type: "designer",
                 name: "Mark Steere",
-                urls: ["https://marksteeregames.com/"]
-            }
+                urls: ["https://marksteeregames.com/"],
+                apid: "e7a3ebf6-5b05-4548-ae95-299f75527b3f",
+            },
+            {
+                type: "coder",
+                name: "ypaul",
+                urls: [],
+                apid: "46f6da78-be02-4469-94cb-52f17078e9c1",
+            },
         ],
         categories: ["goal>connect", "mechanic>place", "board>shape>rect", "board>connect>hex", "components>simple>1per"],
         flags: ["pie"],

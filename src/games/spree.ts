@@ -41,7 +41,14 @@ export class SpreeGame extends GameBase {
                 type: "designer",
                 name: "Avri Klemer",
                 urls: ["https://boardgamegeek.com/boardgamedesigner/9042/avri-klemer"],
-            }
+                apid: "14ca7afe-e9da-4e28-a920-eba9131f8453",
+            },
+            {
+                type: "coder",
+                name: "ypaul",
+                urls: [],
+                apid: "46f6da78-be02-4469-94cb-52f17078e9c1",
+            },
         ],
         variants: [
             { uid: "size-5", group: "board" },

@@ -49,6 +49,13 @@ export class PenguinGame extends GameBase {
                 urls: [
                     "https://linktr.ee/nycavri"
                 ],
+                apid: "14ca7afe-e9da-4e28-a920-eba9131f8453",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
             },
         ],
         categories: ["goal>breakthrough", "mechanic>place", "mechanic>displace", "mechanic>move", "board>shape>rect", "board>connect>rect", "components>pyramids"],

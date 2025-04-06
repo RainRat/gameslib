@@ -29,7 +29,7 @@ export class PaintbucketGame extends GameBase {
         uid: "paintbucket",
         playercounts: [2],
         version: "20250330",
-        dateAdded: "2025-01-19",
+        dateAdded: "2025-04-05",
         // version: "20231225",
         // i18next.t("apgames:descriptions.paintbucket")
         description: "apgames:descriptions.paintbucket",
@@ -44,15 +44,20 @@ export class PaintbucketGame extends GameBase {
                 type: "designer",
                 name: "Alek Erickson",
                 urls: ["https://boardgamegeek.com/boardgamedesigner/101050/alek-erickson"],
+                apid: "e98f96b2-5dbb-492c-bf46-85207bd29242",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
             },
         ],
         variants: [
-            {uid: "size-12", group: "board"},
-            {uid: "#board" },
-            {uid: "size-20", group: "board"},
+            {uid: "size-16", group: "board"},
         ],
-        categories: ["goal>annihilate", "mechanic>convert",  "board>shape>rect", "board>connect>rect", "components>simple>1per"],
-        flags: ["experimental", "automove", "limited-pieces"],
+        categories: ["goal>annihilate", "mechanic>convert", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
+        flags: ["automove", "limited-pieces"],
     };
     public numplayers = 2;
     public currplayer!: playerid;
@@ -139,7 +144,7 @@ export class PaintbucketGame extends GameBase {
             const [,nstr] = size.split("-");
             return parseInt(nstr, 10);
         }
-        return 16;
+        return 12;
     }
 
     private get graph(): SquareOrthGraph {

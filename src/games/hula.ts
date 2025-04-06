@@ -38,7 +38,20 @@ export class HulaGame extends GameBase {
             {
                 type: "designer",
                 name: "Hoembla",
-                urls: ["https://boardgamegeek.com/boardgamedesigner/148212/hoembla"]
+                urls: ["https://boardgamegeek.com/boardgamedesigner/148212/hoembla"],
+                apid: "36926ace-08c0-417d-89ec-15346119abf2",
+            },
+            {
+                type: "coder",
+                name: "Castux",
+                urls: [],
+                apid: "89144a32-7a68-41b4-a443-f98ed3c6df01",
+            },
+            {
+                type: "coder",
+                name: "hoembla",
+                urls: [],
+                apid: "36926ace-08c0-417d-89ec-15346119abf2",
             },
         ],
         flags: ["pie"],

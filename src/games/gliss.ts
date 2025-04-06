@@ -47,7 +47,14 @@ export class GlissGame extends GameBase {
                 type: "designer",
                 name: "Corey Clark",
                 urls: ["https://boardgamegeek.com/boardgamedesigner/38921/corey-clark"],
-            }
+                apid: "d1cd6092-7429-4241-826b-bbc157d08d93",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
+            },
         ],
         variants: [
             { uid: "size-12", group: "board" },

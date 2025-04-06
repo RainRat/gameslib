@@ -36,8 +36,15 @@ export class HexYGame extends GameBase {
             {
                 type: "designer",
                 name: "Mark Steere",
-                urls: ["https://marksteeregames.com/"]
-            }
+                urls: ["https://marksteeregames.com/"],
+                apid: "e7a3ebf6-5b05-4548-ae95-299f75527b3f",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
+            },
         ],
         categories: ["goal>connect", "mechanic>place", "board>shape>hex", "board>connect>hex", "components>simple>1per"],
         flags: ["automove", "pie"],

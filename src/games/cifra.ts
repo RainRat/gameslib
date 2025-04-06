@@ -49,11 +49,18 @@ export class CifraGame extends GameBase {
             {
                 type: "designer",
                 name: "Mitsuo Yamamoto",
+                apid: "14dcbd2c-e6f7-421b-a051-025461c38158",
             },
             {
                 type: "publisher",
                 name: "Logy Games",
                 urls: ["http://www.logygames.com/"],
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
             },
         ],
         variants: [

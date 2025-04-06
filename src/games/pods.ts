@@ -37,8 +37,15 @@ export class PodsGame extends GameBase {
             {
                 type: "designer",
                 name: "Dale Walton",
-                urls: ["https://boardgamegeek.com/boardgamedesigner/1988/dale-walton"]
-            }
+                urls: ["https://boardgamegeek.com/boardgamedesigner/1988/dale-walton"],
+                apid: "1f26a119-d9a4-4ff1-bbc7-ec599c07ea1e",
+            },
+            {
+                type: "coder",
+                name: "ManaT",
+                urls: [],
+                apid: "a82c4aa8-7d43-4661-b027-17afd1d1586f",
+            },
         ],
         categories: ["goal>area", "mechanic>place",  "mechanic>move", "mechanic>enclose", "board>shape>hex", "board>connect>hex", "components>simple>1per"],
         flags: ["scores", "automove"],

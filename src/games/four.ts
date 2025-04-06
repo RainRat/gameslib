@@ -41,7 +41,14 @@ export class FourGame extends GameBase {
             {
                 type: "designer",
                 name: "Stephen Tavener",
-                urls: ["http://www.mrraow.com"]
+                urls: ["http://www.mrraow.com"],
+                apid: "151518d9-dcec-4900-8277-f86830befb64",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
             },
         ],
         variants: [

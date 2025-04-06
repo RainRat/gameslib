@@ -37,8 +37,15 @@ export class QuagmireGame extends GameBase {
             {
                 type: "designer",
                 name: "Christopher Field",
-                urls: ["https://cjffield.com/"]
-            }
+                urls: ["https://cjffield.com/"],
+                apid: "a82c4aa8-7d43-4661-b027-17afd1d1586f",
+            },
+            {
+                type: "coder",
+                name: "ManaT",
+                urls: [],
+                apid: "a82c4aa8-7d43-4661-b027-17afd1d1586f",
+            },
         ],
         categories: ["goal>immobilize", "mechanic>block",  "mechanic>move", "board>shape>hex", "board>connect>hex", "components>simple>3c"],
         flags: [],

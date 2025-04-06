@@ -44,8 +44,15 @@ export class PletoreGame extends GameBase {
             {
                 type: "designer",
                 name: "Luis Bolaños Mures",
-                urls: ["https://boardgamegeek.com/boardgamedesigner/47001/luis-bolanos-mures"]
-            }
+                urls: ["https://boardgamegeek.com/boardgamedesigner/47001/luis-bolanos-mures"],
+                apid: "6b518a3f-7f63-47b8-b92b-a04792fba8e7",
+            },
+            {
+                type: "coder",
+                name: "ManaT",
+                urls: [],
+                apid: "a82c4aa8-7d43-4661-b027-17afd1d1586f",
+            },
         ],
         categories: ["goal>area", "mechanic>place",  "mechanic>capture", "board>shape>rect"],
         flags: ["pie-even", "scores", "automove", "custom-buttons"],

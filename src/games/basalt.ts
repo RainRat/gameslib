@@ -49,6 +49,13 @@ export class BasaltGame extends GameBase {
                 type: "designer",
                 name: "Alek Erickson",
                 urls: ["https://boardgamegeek.com/boardgamedesigner/101050/alek-erickson"],
+                apid: "e98f96b2-5dbb-492c-bf46-85207bd29242",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
             },
         ],
         variants: [

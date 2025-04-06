@@ -50,8 +50,15 @@ export class StorisendeGame extends GameBase {
             {
                 type: "designer",
                 name: "Christian Freeling",
-                urls: ["https://www.mindsports.nl/"]
-            }
+                urls: ["https://www.mindsports.nl/"],
+                apid: "b12bd9cd-59cf-49c7-815f-af877e46896a",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
+            },
         ],
         variants: [
             // default is hex5 board

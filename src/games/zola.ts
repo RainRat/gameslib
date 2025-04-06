@@ -40,7 +40,14 @@ export class ZolaGame extends GameBase {
                 type: "designer",
                 name: "Mark Steere",
                 urls: ["http://www.marksteeregames.com/"],
-            }
+                apid: "e7a3ebf6-5b05-4548-ae95-299f75527b3f",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
+            },
         ],
         variants: [
             {

@@ -64,8 +64,15 @@ export class MoonSquadGame extends GameBase {
             {
                 type: "designer",
                 name: "Drew Edwards",
-                urls: ["https://games.drew-edwards.com/"]
-            }
+                urls: ["https://games.drew-edwards.com/"],
+                apid: "b56c401e-1643-4c3a-9e66-c27c995885cf",
+            },
+            {
+                type: "coder",
+                name: "Aaron Dalton (Perlkönig)",
+                urls: [],
+                apid: "124dd3ce-b309-4d14-9c8e-856e56241dfe",
+            },
         ],
         variants: [
             {uid: "limping", group: "board"},

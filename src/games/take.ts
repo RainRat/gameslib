@@ -42,8 +42,15 @@ export class TakeGame extends GameBase {
             {
                 type: "designer",
                 name: "Mark Steere",
-                urls: ["https://www.marksteeregames.com"]
-            }
+                urls: ["https://www.marksteeregames.com"],
+                apid: "e7a3ebf6-5b05-4548-ae95-299f75527b3f",
+            },
+            {
+                type: "coder",
+                name: "ManaT",
+                urls: [],
+                apid: "a82c4aa8-7d43-4661-b027-17afd1d1586f",
+            },
         ],
         categories: ["goal>annihilate", "mechanic>place",  "mechanic>enclose", "mechanic>capture", "mechanic>move", "board>shape>hex", "board>connect>hex", "components>simple>3c"],
         flags: [],

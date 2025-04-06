@@ -42,7 +42,14 @@ export class TrikeGame extends GameBase {
                 type: "designer",
                 name: "Alek Erickson",
                 urls: ["https://boardgamegeek.com/boardgamedesigner/101050/alek-erickson"],
-            }
+                apid: "e98f96b2-5dbb-492c-bf46-85207bd29242",
+            },
+            {
+                type: "coder",
+                name: "ypaul",
+                urls: [],
+                apid: "46f6da78-be02-4469-94cb-52f17078e9c1",
+            },
         ],
         variants: [
             {uid: "standard-7", group: "board"},
