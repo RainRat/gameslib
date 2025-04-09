@@ -48,14 +48,9 @@ export class SlitherGame extends GameBase {
             },
         ],
         variants: [
-            {
-                uid: "13x13",
-                group: "board"
-            },
-            {
-                uid: "classic",
-                group: "movement"
-            }
+            { uid: "11x11", group: "board" },
+            { uid: "13x13", group: "board" },
+            { uid: "classic", group: "movement" },
         ],
         categories: ["goal>connect", "mechanic>place",  "mechanic>move", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
         flags: ["pie", "automove"]
@@ -125,6 +120,8 @@ export class SlitherGame extends GameBase {
         this.connPath = [...state.connPath];
         if (this.variants.includes("13x13")) {
             this.boardSize = 13;
+        } else if (this.variants.includes("11x11")) {
+            this.boardSize = 11;
         } else {
             this.boardSize = 9;
         }
