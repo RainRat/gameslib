@@ -35,7 +35,10 @@ export class HexGame extends GameBase {
         dateAdded: "2024-01-03",
         // i18next.t("apgames:descriptions.hex")
         description: "apgames:descriptions.hex",
-        urls: ["https://en.wikipedia.org/wiki/Hex_(board_game)"],
+        urls: [
+            "https://en.wikipedia.org/wiki/Hex_(board_game)",
+            "https://boardgamegeek.com/boardgame/4112/hex",
+        ],
         people: [
             {
                 type: "designer",
@@ -59,6 +62,7 @@ export class HexGame extends GameBase {
                 uid: "size-11",
                 group: "board",
             },
+            { uid: "#board", },
             {
                 uid: "size-14",
                 group: "board",

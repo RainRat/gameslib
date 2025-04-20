@@ -32,7 +32,10 @@ export class BlastRadiusGame extends GameBase {
         dateAdded: "2024-11-27",
         // i18next.t("apgames:descriptions.blastradius")
         description: "apgames:descriptions.blastradius",
-        urls: ["https://www.marksteeregames.com/Blast_Radius_rules.pdf"],
+        urls: [
+            "https://www.marksteeregames.com/Blast_Radius_rules.pdf",
+            "https://boardgamegeek.com/boardgame/434293/blast-radius",
+        ],
         people: [
             {
                 type: "designer",
@@ -52,6 +55,7 @@ export class BlastRadiusGame extends GameBase {
                 uid: "board-5",
                 group: "board",
             },
+            { uid: "#board", },
             {
                 uid: "board-7",
                 group: "board",

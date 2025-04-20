@@ -28,7 +28,10 @@ export class OustGame extends GameBase {
         dateAdded: "2024-05-13",
         // i18next.t("apgames:descriptions.oust")
         description: "apgames:descriptions.oust",
-        urls: ["https://www.marksteeregames.com/Oust_rules.pdf"],
+        urls: [
+            "https://www.marksteeregames.com/Oust_rules.pdf",
+            "https://boardgamegeek.com/boardgame/30936/oust",
+        ],
         people: [
             {
                 type: "designer",
@@ -45,6 +48,7 @@ export class OustGame extends GameBase {
         ],
         variants: [
             { uid: "hex-6", group: "board" },
+            { uid: "#board", },
             { uid: "hex-8", group: "board" },
             { uid: "square-11", group: "board" },
         ],

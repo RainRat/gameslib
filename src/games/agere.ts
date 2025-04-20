@@ -38,7 +38,11 @@ export class AgereGame extends GameBase {
         dateAdded: "2023-07-31",
         // i18next.t("apgames:descriptions.agere")
         description: "apgames:descriptions.agere",
-        urls: ["https://agere.drew-edwards.com/"],
+        urls: [
+            "https://agere.drew-edwards.com/",
+            "https://boardgamegeek.com/boardgame/397893/adere",
+            "https://boardgamegeek.com/boardgame/398149/cobweb",
+        ],
         people: [
             {
                 type: "designer",
@@ -56,6 +60,7 @@ export class AgereGame extends GameBase {
         variants: [
             {uid: "cobweb", group: "board", experimental: true},
             {uid: "cobweb-small", group: "board"},
+            {uid: "#board"},
             {uid: "standard-11", group: "board"},
             {uid: "standard-14", group: "board"},
             {uid: "moon", group: "board"},

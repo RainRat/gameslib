@@ -30,7 +30,10 @@ export class BukuGame extends GameBase {
         dateAdded: "2024-08-26",
         // i18next.t("apgames:descriptions.buku")
         description: "apgames:descriptions.buku",
-        urls: ["https://mancala.fandom.com/wiki/Buku"],
+        urls: [
+            "https://mancala.fandom.com/wiki/Buku",
+            "https://boardgamegeek.com/boardgame/432205/buku",
+        ],
         people: [
             {
                 type: "designer",
@@ -46,6 +49,7 @@ export class BukuGame extends GameBase {
         ],
         variants: [
             {uid: "size-6", group: "board"},
+            { uid: "#board", },
             {uid: "size-10", group: "board"},
         ],
         categories: ["goal>score>race", "mechanic>capture",  "mechanic>move>sow", "board>shape>rect", "board>connect>rect", "components>simple>1c"],

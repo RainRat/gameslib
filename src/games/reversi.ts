@@ -32,7 +32,10 @@ export class ReversiGame extends GameBase {
         dateAdded: "2024-02-25",
         // i18next.t("apgames:descriptions.reversi")
         description: "apgames:descriptions.reversi",
-        urls: ["https://en.wikipedia.org/wiki/Reversi"],
+        urls: [
+            "https://en.wikipedia.org/wiki/Reversi",
+            "https://boardgamegeek.com/boardgame/2389/othello",
+        ],
         people: [
             {
                 type: "designer",
@@ -51,6 +54,7 @@ export class ReversiGame extends GameBase {
         ],
         variants: [
             {uid: "standard-6", group: "board"},
+            { uid: "#board", },
             {uid: "standard-10", group: "board"},
             {uid: "octagon-8", group: "board"},
             {uid: "octagon-10", group: "board"},
