@@ -29,7 +29,7 @@ export class PilastriGame extends GameBase {
         uid: "pilastri",
         playercounts: [2],
         version: "20250424",
-        dateAdded: "2025-04-24",
+        dateAdded: "2025-04-25",
         // i18next.t("apgames:descriptions.pilastri")
         description: "apgames:descriptions.pilastri",
         urls: [
@@ -50,8 +50,8 @@ export class PilastriGame extends GameBase {
                 apid: "a82c4aa8-7d43-4661-b027-17afd1d1586f",
             },
         ],
-        categories: ["goal>immobilize", "mechanic>move", "board>shape>rect"],
-        flags: ["automove", "experimental"],
+        categories: ["goal>immobilize", "mechanic>move", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
+        flags: ["automove"],
         variants: [
             {
                 uid: "size-8",
