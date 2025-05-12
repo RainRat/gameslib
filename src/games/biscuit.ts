@@ -419,6 +419,11 @@ export class BiscuitGame extends GameBase {
 
         m = m.toLowerCase();
         m = m.replace(/\s+/g, "");
+        // if parenthetical is present, strip it
+        const idx = m.indexOf("(");
+        if (idx >= 0) {
+            m = m.substring(0, idx);
+        }
 
         if (m.length === 0) {
             result.valid = true;
@@ -631,6 +636,11 @@ export class BiscuitGame extends GameBase {
 
         m = m.toLowerCase();
         m = m.replace(/\s+/g, "");
+        // if parenthetical is present, strip it
+        const idx = m.indexOf("(");
+        if (idx >= 0) {
+            m = m.substring(0, idx);
+        }
         if (m !== "pass") {
             const [c,t] = m.split(">");
             m = `${c.toUpperCase()}>${t || ""}`;
@@ -760,11 +770,24 @@ export class BiscuitGame extends GameBase {
             // no bonus points awarded
         }
 
+        // calculate total deltaScore
+        let scoreChange = 0;
+        for (const {delta} of this.results.filter(r => r.type === "deltaScore")) {
+            scoreChange += delta!;
+        }
+        let tag = "";
+        if (scoreChange > 0) {
+            tag += scoreChange.toString();
+        }
+        if (roundOver) {
+            tag += "*";
+        }
+
         // update currplayer
         // Regardless of whether the round just ended,
         // play continues in sequence. Other approaches require
         // more complicated state manipulation.
-        this.lastmove = lastmove;
+        this.lastmove = lastmove + (tag === "" ? "" : `(${tag})`);
         let newplayer = (this.currplayer as number) + 1;
         if (newplayer > this.numplayers) {
             newplayer = 1;
@@ -910,6 +933,7 @@ export class BiscuitGame extends GameBase {
         for (let x = minX - 1; x <= maxX + 1; x++) {
             columnLabels.push(x.toString());
         }
+        const [rootCol, rootRow] = this.board.abs2rel(0, 0)!;
 
         // build pieces string and block most cells, for visual clarity
         const pieces: string[][] = [];
@@ -986,7 +1010,7 @@ export class BiscuitGame extends GameBase {
                     pieces: hand.map(c => "c" + c) as [string, ...string[]],
                     label: i18next.t("apgames:validation.jacynth.LABEL_STASH", {playerNum: p}) || `P${p} Hand`,
                     spacing: 0.5,
-                    width: 6,
+                    width: width < 6 ? 6 : undefined,
                 });
             } else if (hand.includes("")) {
                 areas.push({
@@ -994,7 +1018,7 @@ export class BiscuitGame extends GameBase {
                     pieces: hand.map(() => "cUNKNOWN") as [string, ...string[]],
                     label: i18next.t("apgames:validation.jacynth.LABEL_STASH", {playerNum: p}) || `P${p} Hand`,
                     spacing: 0.5,
-                    width: 6,
+                    width: width < 6 ? 6 : undefined,
                 });
             }
         }
@@ -1012,23 +1036,34 @@ export class BiscuitGame extends GameBase {
                 label: i18next.t("apgames:validation.jacynth.LABEL_REMAINING") || "Cards in deck",
                 spacing: 0.25,
                 pieces: remaining,
-                width: 6,
+                width: width < 6 ? 6 : undefined,
             });
         }
 
         // Build rep
         const rep: APRenderRep =  {
             board: {
-                style: "squares-beveled",
+                style: "squares",
                 width: width + 2,
                 height: height + 2,
                 tileHeight: 1,
                 tileWidth: 1,
                 tileSpacing: 0.1,
-                // strokeOpacity: 0.05,
                 blocked: blocked as [RowCol, ...RowCol[]],
                 rowLabels: rowLabels.map(l => l.replace("-", "\u2212")),
                 columnLabels: columnLabels.map(l => l.replace("-", "\u2212")),
+                markers: [
+                    {
+                        type: "flood",
+                        points: [{row: rootRow, col: rootCol}],
+                        colour: {
+                            func: "flatten",
+                            fg: "_context_fill",
+                            bg: "_context_background",
+                            opacity: 0.1,
+                        },
+                    },
+                ],
             },
             legend,
             pieces: pstr,
