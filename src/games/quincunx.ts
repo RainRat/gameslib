@@ -109,6 +109,8 @@ export class QuincunxGame extends GameBase {
     public results: Array<APMoveResult> = [];
     public round = 1;
     private deck!: Deck;
+    // @ts-expect-error (This is only read by the frontend code)
+    private __noAutomove?: boolean;
 
     constructor(state: number | IQuincunxState | string, variants?: string[]) {
         super();
@@ -222,7 +224,7 @@ export class QuincunxGame extends GameBase {
 
         // if the board is full, then the only choice is to pass
         // which will trigger the end of the round
-        if (moves.length === 0) {
+        if (moves.length === 0 && this.board.cards.length === 25) {
             moves.push("pass");
         }
 
@@ -310,8 +312,8 @@ export class QuincunxGame extends GameBase {
         }
     }
 
-    public scorePlacement(placed: QuincunxCard): {basics: number[], draws: number, pairs: number, straights: number, sets: number, flushes: number, powerplay: boolean, powerplayScore: number} {
-        const basics: number[] = [];
+    public scorePlacement(placed: QuincunxCard): {basics: [string,number][], draws: number, pairs: number, straights: number, sets: number, flushes: number, powerplay: boolean, powerplayScore: number} {
+        const basics: [string,number][] = [];
         let draws = 0;
         let pairs = 0;
         let straights = 0;
@@ -345,21 +347,21 @@ export class QuincunxGame extends GameBase {
                         }
                         const suitsMatch = placed.card.sharesSuitWith(nCard.card);
                         if (hasAce && suitsMatch) {
-                            basics.push(sum);
+                            basics.push([nCard.card.uid, sum]);
                         } else {
-                            basics.push(sum * -1);
+                            basics.push([nCard.card.uid, sum * -1]);
                         }
                     } else if (sum === 10) {
-                        basics.push(0);
+                        basics.push([nCard.card.uid, 0]);
                     } else if (sum === 11) {
-                        basics.push(0);
+                        basics.push([nCard.card.uid, 0]);
                         draws++;
                     } else if (sum < 20) {
-                        basics.push(sum - 10);
+                        basics.push([nCard.card.uid, sum - 10]);
                     }
                     // this can only be if the sum is exactly 20
                     else {
-                        basics.push(0);
+                        basics.push([nCard.card.uid, 0]);
                         draws++;
                     }
                 }
@@ -381,8 +383,8 @@ export class QuincunxGame extends GameBase {
                 if (rayPrime.length + rayOpp.length + 1 >= 3) {
                     sets++;
                 }
-                // only a pair is present
-                else if (rayPrime.length > 0 || rayOpp.length > 0) {
+                // only a pair is present (in an orthogonal direction)
+                else if (dir.length === 1 && (rayPrime.length > 0 || rayOpp.length > 0)) {
                     pairs++;
                 }
             }
@@ -467,7 +469,7 @@ export class QuincunxGame extends GameBase {
             }
             // powerplays
             if (placed.card.rank.name === "Ace" || placed.card.rank.name === "Crown") {
-                for (const n of g.neighbours(node)) {
+                for (const n of gOrth.neighbours(node)) {
                     const nCard = this.board.getCardAt(...this.board.rel2abs(...g.algebraic2coords(n)));
                     if (nCard !== undefined && (nCard.card.rank.name === "Ace" || nCard.card.rank.name === "Crown")) {
                         if (placed.card.sharesSuitWith(nCard.card)) {
@@ -488,7 +490,7 @@ export class QuincunxGame extends GameBase {
         return {basics, draws, pairs, straights, sets, flushes, powerplay, powerplayScore};
     }
 
-    public move(m: string, {trusted = false, partial = false} = {}): QuincunxGame {
+    public move(m: string, {trusted = false, partial = false, emulation = false} = {}): QuincunxGame {
         if (this.gameover) {
             throw new UserFacingError("MOVES_GAMEOVER", i18next.t("apgames:MOVES_GAMEOVER"));
         }
@@ -516,6 +518,10 @@ export class QuincunxGame extends GameBase {
         }
 
         if (partial) { return this; }
+        if (emulation && m === "pass") {
+            this.__noAutomove = true;
+            return this;
+        }
         this.results = [];
 
         let lastmove = m;
@@ -595,9 +601,9 @@ export class QuincunxGame extends GameBase {
             // tabulate scores
             const scores = this.scorePlacement(cardObj);
             // basic first
-            for (const n of scores.basics) {
+            for (const [cuid, n] of scores.basics) {
                 this.scores[this.currplayer - 1] += n;
-                this.results.push({type: "deltaScore", delta: n, description: "basic"});
+                this.results.push({type: "deltaScore", delta: n, description: `basic-${cuid}`});
             }
             // draws
             if (scores.draws > 0) {
@@ -697,7 +703,7 @@ export class QuincunxGame extends GameBase {
             state.stack = state.stack.map(mstate => {
                 for (let p = 1; p <= this.numplayers; p++) {
                     if (p === opts.player) { continue; }
-                    mstate.hands[p-1] = [];
+                    mstate.hands[p-1] = mstate.hands[p-1].map(() => "");
                 }
                 return mstate;
             });
@@ -762,7 +768,9 @@ export class QuincunxGame extends GameBase {
                 const nCard = this.board.getCardAt(nabsx, nabsy);
                 if (nCard === undefined) {
                     const idx = blocked.findIndex(({row, col}) => row === nrely && col === nrelx);
-                    blocked.splice(idx, 1);
+                    if (idx >= 0) {
+                        blocked.splice(idx, 1);
+                    }
                 }
             }
         }
@@ -780,11 +788,12 @@ export class QuincunxGame extends GameBase {
         // build pieces areas
         const areas: AreaPieces[] = [];
         for (let p = 1; p <= this.numplayers; p++) {
-            const hand = this.hands[p-1];
-            if (hand.length > 0) {
+            const hand = [...this.hands[p-1]];
+            if (!hand.includes("")) {
+                const sorted = hand.map(uid => Card.deserialize(uid)!).sort(cardSortAsc).map(c => c.uid);
                 areas.push({
                     type: "pieces",
-                    pieces: hand.map(c => "c" + c) as [string, ...string[]],
+                    pieces: sorted.map(c => "c" + c) as [string, ...string[]],
                     label: i18next.t("apgames:validation.jacynth.LABEL_STASH", {playerNum: p}) || `P${p} Hand`,
                     spacing: 0.5,
                     width: width < 6 ? 6 : undefined,
@@ -853,7 +862,7 @@ export class QuincunxGame extends GameBase {
         }
         return [
             { name: i18next.t("apgames:status.SCORES"), scores},
-            // { name: i18next.t("apgames:status.CARDSINHAND"), scores: this.hands.map(h => h.length)},
+            { name: i18next.t("apgames:status.CARDSINHAND"), scores: this.hands.map(h => h.length)},
         ];
     }
 
@@ -892,9 +901,15 @@ export class QuincunxGame extends GameBase {
                     node.push(i18next.t("apresults:DELTASCORE.quincunx.penalty", {player, count: r.delta, delta: r.delta, playerNum: r.who}));
                     resolved = true;
                 }
+                // basic score components
+                else if (r.description !== undefined && r.description.startsWith("basic-")) {
+                    const idx = r.description.indexOf("-");
+                    node.push(i18next.t("apresults:DELTASCORE.quincunx.basic", {player, count: Math.abs(r.delta!), delta: r.delta, card: r.description.substring(idx+1)}));
+                    resolved = true;
+                }
                 // individual score components
                 else {
-                    node.push(i18next.t(r.delta! >= 0 ? "apresults:DELTA_SCORE_GAIN" : "apresults:DELTA_SCORE_LOSS", {player, count: r.delta, delta: r.delta}));
+                    node.push(i18next.t(r.delta! >= 0 ? "apresults:DELTA_SCORE_GAIN" : "apresults:DELTA_SCORE_LOSS", {player, count: Math.abs(r.delta!), delta: Math.abs(r.delta!)}));
                     resolved = true;
                 }
                 break;
