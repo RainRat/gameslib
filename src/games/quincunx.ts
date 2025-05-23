@@ -112,6 +112,7 @@ export class QuincunxGame extends GameBase {
     // @ts-expect-error (This is only read by the frontend code)
     private __noAutomove?: boolean;
     private masked: string[] = [];
+    private selected: string|undefined;
 
     constructor(state: number | IQuincunxState | string, variants?: string[]) {
         super();
@@ -518,6 +519,13 @@ export class QuincunxGame extends GameBase {
             }
         }
 
+        this.selected = undefined;
+        let [cardId,] = m.split(">");
+        cardId = cardId.toUpperCase();
+        if (cardId !== undefined && cardId.length > 0) {
+            this.selected = cardId;
+        }
+
         if (partial) { return this; }
         if (emulation && m === "pass") {
             this.__noAutomove = true;
@@ -788,7 +796,14 @@ export class QuincunxGame extends GameBase {
         }
         const legend: ILegendObj = {};
         for (const card of allcards) {
-            legend["c" + card.uid] = card.toGlyph();
+            const glyph = card.toGlyph();
+            if (this.selected === card.uid) {
+                glyph.unshift({
+                    name: "piece-square",
+                    opacity: 0,
+                });
+            }
+            legend["c" + card.uid] = glyph;
         }
         legend["cUNKNOWN"] = {
             name: "piece-square-borderless",
@@ -805,10 +820,20 @@ export class QuincunxGame extends GameBase {
         for (let p = 1; p <= this.numplayers; p++) {
             const hand = [...this.hands[p-1]];
             if (!hand.includes("")) {
-                const sorted = hand.map(uid => Card.deserialize(uid)!).sort(cardSortAsc).map(c => c.uid);
+                const sorted = hand.map(uid => Card.deserialize(uid)!).sort(cardSortAsc).map(c => c.uid).sort((a,b) => {
+                    if (this.masked.includes(a) && this.masked.includes(b)) {
+                        return 0;
+                    } else if (this.masked.includes(a)) {
+                        return 1
+                    } else if (this.masked.includes(b)) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }).map(c => this.masked.includes(c) ? "cUNKNOWN" : ("c" + c));
                 areas.push({
                     type: "pieces",
-                    pieces: sorted.map(c => this.masked.includes(c) ? "cUNKNOWN" : ("c" + c)) as [string, ...string[]],
+                    pieces: sorted as [string, ...string[]],
                     label: i18next.t("apgames:validation.jacynth.LABEL_STASH", {playerNum: p}) || `P${p} Hand`,
                     spacing: 0.5,
                     width: width < 6 ? 6 : undefined,
