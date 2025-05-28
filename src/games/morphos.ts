@@ -70,8 +70,8 @@ for (const pattern of [base1, base2]) {
     const rot180 = rot90.map(([x,y]) => [0 - y, x] as [number,number]);
     const rot270 = rot180.map(([x,y]) => [0 - y, x] as [number,number]);
     for (const rot of [pattern, rot90, rot180, rot270]) {
-        offsetsBase.push(rot);
-        offsetsBase.push(rot.map(([x,y]) => [x, y*-1]));
+        offsetsBaseOrig.push(rot);
+        offsetsBaseOrig.push(rot.map(([x,y]) => [x, y*-1]));
     }
 }
 
@@ -795,10 +795,13 @@ export class MorphosGame extends GameBase {
     }
 
     public render(): APRenderRep {
+        const g = this.graph;
         // Build piece string
         const weakRed: RowCol[] = [];
         const weakBlue: RowCol[] = [];
         let pstr = "";
+        const dots1: RowCol[] = [];
+        const dots2: RowCol[] = [];
         for (let row = 0; row < this.boardSize; row++) {
             if (pstr.length > 0) {
                 pstr += "\n";
@@ -821,6 +824,21 @@ export class MorphosGame extends GameBase {
                     }
                 } else {
                     pieces.push("-");
+                    const occ = g.neighbours(cell).filter(c => this.board.has(c));
+                    if (occ.length > 2) {
+                        const cloned = this.clone();
+                        for (const p of [1,2] as const) {
+                            cloned.board.set(cell, p);
+                            if (cloned.isWeak(cell)) {
+                                if (p === 1) {
+                                    dots1.push({row, col});
+                                } else {
+                                    dots2.push({row, col});
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             pstr += pieces.join("");
@@ -834,24 +852,6 @@ export class MorphosGame extends GameBase {
         ];
 
         // add territory dots
-        const dots1: RowCol[] = [];
-        const dots2: RowCol[] = [];
-        for (const cell of [...this.empties]) {
-            for (const p of [1,2] as const) {
-                const opp = p === 1 ? 2 : 1;
-                const cloned = this.clone();
-                cloned.board.set(cell, opp);
-                if (cloned.isWeak(cell)) {
-                    const [col, row] = this.algebraic2coords(cell);
-                    if (p === 1) {
-                        dots1.push({col, row});
-                    } else {
-                        dots2.push({col, row});
-                    }
-                    break;
-                }
-            }
-        }
         if (dots1.length > 0) {
             markers.push({
                 type: "dots",
