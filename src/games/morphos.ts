@@ -825,15 +825,15 @@ export class MorphosGame extends GameBase {
                 } else {
                     pieces.push("-");
                     const occ = g.neighbours(cell).filter(c => this.board.has(c));
-                    if (occ.length > 2) {
+                    if (occ.length >= 2) {
                         const cloned = this.clone();
                         for (const p of [1,2] as const) {
                             cloned.board.set(cell, p);
                             if (cloned.isWeak(cell)) {
                                 if (p === 1) {
-                                    dots1.push({row, col});
-                                } else {
                                     dots2.push({row, col});
+                                } else {
+                                    dots1.push({row, col});
                                 }
                                 break;
                             }
