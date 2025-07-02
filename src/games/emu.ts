@@ -259,7 +259,7 @@ type ScoreReport = {
     // the final evaluated score
     value: number;
     // the list of number card ranks, including interpolated wilds
-    ranks: number[];
+    ranks: (number|string)[];
     // the number cards thrown away to cover the cost
     upkeep?: number[];
 };
@@ -297,17 +297,22 @@ const scoreIndividual = (bird: string[]): ScoreReport => {
                 }
             }
         }
+        let ac = "";
         if (cards.find(c => c.rank.seq === 1) !== undefined) {
             value += 5;
-            numbers.unshift(1);
+            ac += "A";
         }
         if (cards.find(c => c.rank.seq === 10) !== undefined) {
             value += 5;
-            numbers.push(10);
+            ac += "C"
+        }
+        const ranks: (string|number)[] = [...numbers];
+        if (ac.length > 0) {
+            ranks.push(`(${ac})`);
         }
         return {
             value,
-            ranks: numbers,
+            ranks,
             upkeep,
         }
     }
@@ -336,6 +341,14 @@ export const eoyMoves =
             if (canGrowBird(bird, card)) {
                 const newbirds = deepclone(birds) as string[][];
                 newbirds[j].push(card);
+                // if card is an Ace or Crown, don't continue this line
+                // if the new bird is negative scoring
+                if (card.startsWith("1") || card.startsWith("N")) {
+                    const newScore = scoreBird(newbirds[j]);
+                    if (newScore.value < 0) {
+                        continue;
+                    }
+                }
                 const newhand = [...hand].filter(c => c !== card);
                 const continuations = eoyMoves(newhand, newbirds);
                 if (continuations.length > 0) {
@@ -552,6 +565,9 @@ export class EmuGame extends GameBase {
         // otherwise, normal play
         else {
             for (const card of this.hands[player - 1]) {
+                if (card === "") {
+                    continue;
+                }
                 // any card may be discarded
                 moves.push(`${card}-discard,deck`);
                 if (card !== "0") {
@@ -606,7 +622,24 @@ export class EmuGame extends GameBase {
             }
             // clicking on your hand
             if (hand.includes(clicked) || move === "") {
-                newmove = clicked;
+                if (move === "") {
+                    newmove = clicked;
+                } else {
+                    const parts = move.split(",");
+                    const last = parts[parts.length - 1];
+                    // if last was complete, start new
+                    if (last.includes("-")) {
+                        newmove = [...parts, clicked].join(",");
+                    }
+                    // otherwise, ignore last and add the new
+                    else {
+                        if (parts.length > 1) {
+                            newmove = [...parts.slice(0, -1), clicked].join(",");
+                        } else {
+                            newmove = clicked;
+                        }
+                    }
+                }
             }
             // otherwise, on the board
             else {
@@ -651,7 +684,11 @@ export class EmuGame extends GameBase {
                         }
                         // otherwise reset the last part
                         else {
-                            newmove = `${parts.slice(0, -1).join(",")},${clicked}`;
+                            if (parts.length > 1) {
+                                newmove = `${parts.slice(0, -1).join(",")},${clicked}`;
+                            } else {
+                                newmove = clicked;
+                            }
                         }
                     }
                     // if clicking on a bird
@@ -663,7 +700,11 @@ export class EmuGame extends GameBase {
                         }
                         // otherwise complete the last part
                         else {
-                            newmove = `${parts.slice(0, -1).join(",")},${last}-${clicked}`;
+                            if (parts.length > 1) {
+                                newmove = `${parts.slice(0, -1).join(",")},${last}-${clicked}`;
+                            } else {
+                                newmove = `${last}-${clicked}`;
+                            }
                         }
                     }
                     // anything else is an error
@@ -721,11 +762,15 @@ export class EmuGame extends GameBase {
         } else {
             const matches = allMoves.filter(mv => mv.startsWith(m));
             if (matches.length > 0) {
+                const parts = m.split(",");
+                const last = parts[parts.length - 1];
                 result.valid = true;
                 result.complete = -1;
                 result.canrender = true;
-                if (!m.includes("-")) {
+                if (!last.includes("-")) {
                     result.message = i18next.t("apgames:validation.emu.SELECT_DEST");
+                } else if (this.deck.size === 0) {
+                    result.message = i18next.t("apgames:validation.emu.INITIAL_INSTRUCTIONS");
                 } else {
                     result.message = i18next.t("apgames:validation.emu.SELECT_SRC");
                 }
@@ -733,7 +778,7 @@ export class EmuGame extends GameBase {
             // either select bird, discard card, or choose draw source
             } else {
                 result.valid = false;
-                result.message = i18next.t("apgames:validation._general.INVALID_MOVE");
+                result.message = i18next.t("apgames:validation._general.INVALID_MOVE", {move: m});
                 return result;
             }
         }
@@ -820,7 +865,9 @@ export class EmuGame extends GameBase {
             }
             // error
             else {
-                throw new Error(`Unrecognized move part: ${part}`);
+                if (!partial) {
+                    throw new Error(`Unrecognized move part: ${part}`);
+                }
             }
         }
 
@@ -1061,9 +1108,17 @@ export class EmuGame extends GameBase {
             }
         }
         // add glyph for deck countdown
+        // the deck count here has to take into account any face-down cards
+        // in players' hands (observers don't see any cards, for example,
+        // but the count should be consistent)
+        let facedown = 0;
+        for (const hand of this.hands) {
+            const down = hand.filter(c => c === "");
+            facedown += down.length;
+        }
         legend["deck"] = [
             {name: "piece-square", colour: "_context_background",},
-            {text: this.deck.size.toString(),}
+            {text: (this.deck.size - facedown).toString(),}
         ];
         // add glyph for empty discard
         legend["discard"] = [
@@ -1091,6 +1146,16 @@ export class EmuGame extends GameBase {
                 });
             }
         }
+        // discard pile (if >2 cards)
+        if (this.discard.length > 1) {
+            areas.push({
+                type: "pieces",
+                pieces: this.discard.map(c => `c${c}`) as [string, ...string[]],
+                label: i18next.t("apgames:validation.emu.LABEL_DISCARD") || `Discard pile`,
+                spacing: 0.25,
+                width: 8,
+            });
+        }
         // create an area for all invisible cards (if there are any cards left)
         // start with `freshDeck` created at the top of this function
         // remove cards from the deck that are on the board, the discard, or in known hands
@@ -1112,7 +1177,7 @@ export class EmuGame extends GameBase {
                 label: i18next.t("apgames:validation.jacynth.LABEL_REMAINING") || "Cards in deck",
                 spacing: 0.25,
                 pieces: remaining.map(c => "c" + c) as [string, ...string[]],
-                width: 6,
+                width: 8,
             });
         }
 

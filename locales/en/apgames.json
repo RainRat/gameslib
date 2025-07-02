@@ -171,6 +171,7 @@
         "spook": "Guide Spooky the ghost around the pyramid and try to be the first player to have all balls of your colour removed. The game takes place in two phases: the setup phase where the pyramid is built, and the getaway phase, where Spooky starts at the top of the pyramid and starts eliminating balls.",
         "spree": "An impartial n-in-a-row game where players take turns handing a ball to their opponent to place. The goal is to try to make a full line of one of two colours (red and blue by default). There is a third wild neutral colour (green by default) that can play the role of either colour.",
         "squaredance": "A game where you move groups of pieces by rotation, trying to force your opponent into a position where they cannot move.",
+        "stairs": "Stack higher than your opponent in this game of one-space, one-level jumps where you also have to move your lowest pieces first.   To take the lead and win, you must surpass your opponent's tallest stack height or, failing that, their number of stacks at the tallest height.",
         "stibro": "Win by forming a loop anywhere on the board, while adhering to the placement restriction that ensures loop-forming is always possible.",
         "stigmergy": "Territorial line-of-sight game. Cells are controlled and pieces on them are flipped based on how many pieces of a color can see them. The winner is the player who occupies more of the board at the end.",
         "storisende": "A unique territory control game where the movement of pieces create territories and walls, eventually creating enclosed nations. Control the most territory to win.",
@@ -1026,10 +1027,10 @@
             },
             "both": {
                 "name": "Full extended",
-                "description": "Includes the Pawns *and* the Courts. Results in a much more forgiving, higher-scoring game."
+                "description": "Includes the Excuse, the Pawns, *and* the Courts. Results in a much more forgiving, higher-scoring game."
             },
             "none": {
-                "name": "No extended",
+                "name": "Basic deck only",
                 "description": "No extended deck cards. Results in a much less forgiving, lower-scoring game."
             }
         },
@@ -1304,7 +1305,7 @@
             },
             "extended": {
                 "name": "Extended deck",
-                "description": "Deck includes the Excuse, the pawns, and the courts (influence tokens may not be placed on any of these cards)."
+                "description": "Deck includes the Excuse, the Pawns, and the Courts (influence tokens may not be placed on any of these cards)."
             },
             "towers": {
                 "name": "Towers",
@@ -1351,10 +1352,10 @@
         "loa": {
             "#board": {
                 "description": "9x9 \"black hole\" variant. Moving a piece onto the central hole removes the piece from the game.",
-                "name": "Larger board (9x9)"
+                "name": "9x9 board"
             },
             "classic": {
-                "name": "Classic 8x8 board"
+                "name": "8x8 board"
             },
             "scrambled": {
                 "description": "Pieces are interspersed with each other instead of starting together on opposite sides of the board.",
@@ -2083,6 +2084,14 @@
             },
             "size-5": {
                 "name": "5x5 board"
+            }
+        },
+        "stairs": {
+            "#board": {
+                "name": "Size 6 board"
+            },
+            "size-8": {
+                "name": "Size 8 board"
             }
         },
         "stibro": {
@@ -3006,6 +3015,7 @@
         },
         "ROUND": "Round",
         "SCORES": "Scores",
+        "STACKSIZES": "Stack heights",
         "tumbleweed": "Score (pieces + influence)",
        "ESTIMATEDSCORES": "Estimated scores",
         "TOPLACE": "Piece to place",
@@ -3728,6 +3738,7 @@
         },
         "emu": {
             "INITIAL_INSTRUCTIONS": "Select a card from your hand to place on the board.",
+            "LABEL_DISCARD": "Discard pile",
             "SELECT_DEST": "Select the plus sign to add the card to an existing bird or to hatch a new one, or click the discard pile to discard the card.",
             "SELECT_SRC": "Click the draw deck to draw a face-down card, or click the face-up card in the discard pile to draw it instead."
         },
@@ -4846,6 +4857,11 @@
             "INITIAL_INSTRUCTIONS": "Select the pivot stone. This is the stone that won't move.",
             "PARTIAL_DESTINATION": "Select the point where the end stone will end up. You may not cover friendly pieces, and any covered enemy pieces will be captured.",
             "PARTIAL_ENDSTONE": "Select the end stone. This is the stone that will move the furthest."
+        },
+        "stairs": {
+            "NORMAL_MOVE": "Choose a piece to move.",
+            "INVALID_MOVE": "You must move a piece to a neighboring stack of the same height. You must move one of your lowest movable pieces.",
+            "MUST_PASS": "The only move available to you is to pass."
         },
         "stibro": {
             "FIRST_PLACEMENT": "The first placement cannot be on the edge.",
