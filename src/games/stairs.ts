@@ -28,7 +28,7 @@ export class StairsGame extends GameBase {
         uid: "stairs",
         playercounts: [2],
         version: "20250619",
-        dateAdded: "2025-06-19",
+        dateAdded: "2025-07-10",
         // i18next.t("apgames:descriptions.stairs")
         description: "apgames:descriptions.stairs",
         urls: [
@@ -49,14 +49,8 @@ export class StairsGame extends GameBase {
             },
         ],
         categories: ["goal>score>eog", "mechanic>move", "mechanic>stack", "board>shape>rect", "board>connect>rect", "components>simple>1per"],
-        flags: ["experimental", "pie", "autopass", "scores"],
-        variants: [
-            { uid: "#board", },
-            {
-                uid: "size-8",
-                group: "board",
-            }
-        ]
+        flags: ["pie", "autopass", "scores"],
+        variants: []
     };
 
     public numplayers = 2;

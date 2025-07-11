@@ -967,7 +967,15 @@ export class EmuGame extends GameBase {
                     this.results = [{type: "pass"}];
                     this.lastmove = "pass"
                 } else {
-                    this.results = [];
+                    // insert TWO passes so the final board state is rendered
+                    // save the state
+                    this.saveState();
+                    this.results = [{type: "pass"}];
+                    this.lastmove = "pass"
+                    // save the state
+                    this.saveState();
+                    this.results = [{type: "pass"}];
+                    this.lastmove = "pass"
                 }
                 this.currplayer = nextp;
                 // reset the game
@@ -1329,7 +1337,11 @@ export class EmuGame extends GameBase {
                         piece = pieces.find(p => p.glyph === "c" + move.how)
                     }
                     if (piece === undefined) {
-                        throw new Error(`Could not find the card to annotate (where: ${move.where}, how: ${move.how}).\n${JSON.stringify(pieces)}`);
+                        // don't throw an error
+                        // this can happen when ending a year and there's no intervening pass
+                        // so just continue
+                        continue;
+                        // throw new Error(`Could not find the card to annotate (where: ${move.where}, how: ${move.how}).\n${JSON.stringify(pieces)}`);
                     }
                     const xStart = piece.x - halfUnit;
                     const yStart = piece.y - halfUnit;
