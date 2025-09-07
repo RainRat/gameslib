@@ -105,7 +105,8 @@ export class HomeworldsGame extends GameBase {
             },
         ],
         variants: [
-            {uid: "passFree"},
+            {uid: "passFree", group: "rules", default: true},
+            {uid: "#rules"},
         ],
         categories: ["goal>cripple", "mechanic>capture", "mechanic>move", "mechanic>convert", "mechanic>economy", "mechanic>place", "mechanic>share", "board>none", "components>pyramids", "other>2+players"],
         flags: ["shared-pieces", "perspective", "rotate90", "no-moves", "custom-rotation"]
@@ -122,6 +123,7 @@ export class HomeworldsGame extends GameBase {
     public actions!: IActionTracker;
     private eliminated: Seat[] = [];
     public variants: string[] = [];
+    private _mayPass = false;
 
     constructor(state: number | IHomeworldsState | string, variants?: string[]) {
         super();
@@ -941,6 +943,7 @@ export class HomeworldsGame extends GameBase {
 
         let subResult: IValidationResult | undefined;
         let nemesisCatastrophed = false;
+        let canPass = false;
         for (let i = 0; i < moves.length; i++) {
         // for (const move of moves) {
             const move = moves[i];
@@ -1018,6 +1021,9 @@ export class HomeworldsGame extends GameBase {
                     break;
                 case "pass":
                     subResult = cloned.validatePass(...tokens.slice(1));
+                    if (subResult.complete === 0) {
+                        canPass = true;
+                    }
                     break;
                 default:
                     subResult = {
@@ -1101,7 +1107,7 @@ export class HomeworldsGame extends GameBase {
             result.message = i18next.t("apgames:validation._general.VALID_MOVE");
         }
         // Otherwise, if you have a free action, you have to use it.
-        else if ( (hasActions) && (! eliminated) ) {
+        else if ( (hasActions) && (! eliminated) && (!canPass) ) {
             result.complete = -1;
             result.message = i18next.t("apgames:validation.homeworlds.VALID_W_ACTIONS");
         }
@@ -1216,7 +1222,7 @@ export class HomeworldsGame extends GameBase {
         }
 
         // You have to account for all your actions, unless you or your nemesis have been eliminated
-        if ( (this.actions.R > 0) || (this.actions.B > 0) || (this.actions.G > 0) || (this.actions.Y > 0) || (this.actions.free > 0) ) {
+        if ( (this.actions.R > 0) || (this.actions.B > 0) || (this.actions.G > 0) || (this.actions.Y > 0) || (this.actions.free > 0 && !this._mayPass) ) {
             if (! this.eliminated.includes(this.player2seat()) && ! this.eliminated.includes(LHO!)) {
                 throw new UserFacingError(HomeworldsErrors.MOVE_MOREACTIONS, i18next.t("apgames:homeworlds.MOVE_MOREACTIONS"));
             }
@@ -2373,6 +2379,9 @@ export class HomeworldsGame extends GameBase {
             const hasHW = this.systems.find(s => s.owner === mySeat) !== undefined;
             if (!varActive || !hasHW) {
                 throw new UserFacingError(HomeworldsErrors.CMD_PASS_FREE, i18next.t("apgames:homeworlds.CMD_PASS_FREE"));
+                this._mayPass = false;
+            } else {
+                this._mayPass = true;
             }
         } else {
             if (args[0] === "*") {
