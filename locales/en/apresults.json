@@ -22,7 +22,8 @@
     "ANNOUNCE": {
         "biscuit": "The following cards were in opposing hands: {{cards}}.",
         "deckfish": "{{player}} was unable to move and must pass from now on.",
-        "quincunx": "Player {{playerNum}} had the following cards left in their hand: {{cards}}."
+        "quincunx": "Player {{playerNum}} had the following cards left in their hand: {{cards}}.",
+        "stawvs": "{{player}} was unable to move and must pass from now on.  Their pieces remain on the following pyramids: {{pyramids}}."
     },
     "BEAROFF": {
         "complete_one": "{{player}} bore off one piece from {{from}}.",
@@ -62,6 +63,8 @@
         "hens_chick": "{{player}} captured a chick at {{where}}.",
         "hens_hen": "{{player}} captured a hen at {{where}}.",
         "hexentafl_king": "The king was captured at {{where}}.",
+        "lasca_officer": "{{player}} captured an officer at {{where}}.",
+        "lasca_soldier": "{{player}} captured a soldier at {{where}}.",
         "lifeline": "Dead pieces were removed at {{where}}.",
         "majorities": "{{count}} pieces were removed.",
         "mancala_one": "{{player}} captured {{count}} stone from {{pit}}.",
@@ -99,6 +102,7 @@
         "spook_lateral_opponent_other": "{{player}} has {{count}} of their opponent's balls captured by Spooky on the same level at {{where}}.",
         "spook_lateral_self_one": "{{player}} has 1 of their own ball captured by Spooky on the same level at {{where}}.",
         "spook_lateral_self_other": "{{player}} has {{count}} of their own balls captured by Spooky on the same level at {{where}}.",
+        "stawvs": "{{player}} captured the {{what}} at {{where}}.",
         "tafl": "{{player}} captured a piece at {{where}}.",
         "terrace_other": "{{player}} captured a size {{what}} piece at {{where}}.",
         "terrace_self": "{{player}} cannibalized their own size {{what}} piece at {{where}}.",
@@ -227,6 +231,7 @@
         "repetition_positional_one": "The game has ended because the same position has occurred.",
         "repetition_positionas_other": "The game has ended because the same position has occurred {{count}} times.",
         "stalemate": "The game has ended because one player has run out of moves.",
+        "stawvs": "The game has ended because the last player was unable to move.",
         "susan_nonplacement": "The game has ended because no player has placed a piece for 6 plies.",
         "tafl_encirclement": "The game has ended because the defenders are encircled.",
         "tafl_exit_fort": "The game has ended because the defenders created an exit fort.",
@@ -314,6 +319,7 @@
         "saltire": "{{player}} swapped the pieces at {{from}} and {{to}}.",
         "slyde": "{{player}} slid a piece from {{from}} to {{to}}.",
         "spook": "{{player}} moved Spooky from {{from}} to {{to}}.",
+        "stawvs": "{{player}} moved a piece from {{from}} to {{to}} and captured {{what}} at {{how}}.",
         "susan": "{{player}} slid a piece from {{from}} to {{to}}.",
         "tafl": "{{player}} moved a piece from {{from}} to {{to}}.",
         "tafl_jump": "{{player}} jumped a piece from {{from}} to {{to}}.",
@@ -404,6 +410,7 @@
         "spire_neutral": "{{player}} placed a neutral ball at {{where}}.",
         "spire_player": "{{player}} placed a ball of their colour at {{where}}.",
         "spooky": "Spooky has entered the board at {{where}}.",
+        "stawvs": "{{player}} placed a piece at {{where}}.",
         "strands_initial": "{{player}} placed a piece on a space labelled 2 at {{where}}.",
         "strands_one": "{{player}} placed a piece at {{where}}.",
         "strands_other": "{{player}} placed {{count}} pieces at {{where}}.",
