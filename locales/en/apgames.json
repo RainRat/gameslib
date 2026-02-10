@@ -62,6 +62,7 @@
         "control": "Control is a finite, drawless territory game of elegant simplicity. Add pieces where your opponent doesn't have more influence or remove pieces from where you have more influence. Last to move wins.",
         "courtesan": "Get your king to the other side of the board while safely \"hiding\" it among your other pieces.",
         "crossway": "A game of connecting opposite sides of the board, but lines of pieces may not cross each other.",
+        "crosshairs": "A WW1 aerial dogfight game with no random elements. Planes have height and direction. Movement includes climbing, level flight, and diving. Combat is simple: if a plane is in the line of fire of two enemy planes, it is shot down. Reduce your opponent to one plane to win.",
         "cubeo": "A boardless, perfect-information dice game where you attempt to promote your dice faster than your opponent or manoeuvre your opponent into a position where they cannot move.",
         "dagnacht": "An n-in-a-row game on a checkered board. You can only place pieces on the dark squares, but you can then move pieces onto the light squares. Win by getting 5 in a row orthogonally (including 3 light squares if you are player 1) or 4 in a row on a light diagonal. Winner of the Abstract Games magazine's 2021 \"Unequal Board Spaces Game Design Competition\".",
         "dameo": "A modern draughts game with linear movement and orthogonal captures.",
@@ -152,6 +153,7 @@
         "pikemen": "A Looney pyramid game where the pyramids represents soldiers with long pikes. Pieces charge in the direction they're facing and can then change their orientation. Capture a certain number of enemy soldiers to win.\n\nWhile the game is technically playable by three and four players, this implementation only supports two players.",
         "pilastri": "Outlast your opponent in this game of blocking and moving, as pieces are forced to climb higher and higher until they run out of moves.",
         "pletore": "Territorial line-of-sight game. Intersections are controlled and pieces on them are flipped based on the number and direction of pieces that can see them. The winner is the player who occupies more of the board at the end.",
+        "plurality": "Territorial game where players place trominos to enclosure areas. The player with more stones on a given area's perimeter owns that area.",
         "pods": "Natal Seas - Pods is a territorial game where the players take on the metaphorical role of competing whales vying for space to protect their young. Played on a hexagonal board, it uses an innovative mechanism of placements and movements.",
         "pontedd": "Players build islands and attempt to connect as many of them as possible by bridge. Most points wins.",
         "prudh": "Prudh (\"prew\") is a game of shared pieces where one player owns the light squares and the other owns the dark. Manipulate stacks of pieces to earn points. Highest score at the end of the game wins.",
@@ -985,6 +987,12 @@
             },
             "size-6": {
                 "name": "Shorter game (6x6 board)"
+            }
+        },
+        "crosshairs": {
+            "random-start": {
+                "name": "Random clouds",
+                "description": "There is no placing clouds phase. They are placed randomly by the system."
             }
         },
         "crossway": {
@@ -1898,6 +1906,17 @@
             },
             "size-17": {
                 "name": "Largest board (17x17)"
+            }
+        },
+        "plurality": {
+            "#board": {
+                "name": "13x13 board"
+            },
+            "size-15": {
+                "name": "15x15 board"
+            },
+            "size-19": {
+                "name": "19x19 board"
             }
         },
         "pontedd": {
@@ -2844,6 +2863,12 @@
                 "name": "Isometric"
             }
         },
+        "blastradius": {
+            "nums": {
+                "name": "Numbers",
+                "description": "Stacks as numbers"
+            }
+        },
         "blockade": {
             "differentiated-walls": {
                 "description": "Display walls placed by each player in different colours.",
@@ -2894,6 +2919,12 @@
             "vertex-style": {
                 "name": "Vertex style",
                 "description": "Display the board using vertexes instead of hexes."
+            }
+        },
+        "crosshairs": {
+            "abstract": {
+                "description": "Use abstract glyphs for the planes and clouds.",
+                "name": "Abstract glyphs"
             }
         },
         "diffusion": {
@@ -4042,6 +4073,34 @@
             "INITIAL_INSTRUCTIONS": "Select a point to place a piece.",
             "NO_CROSSINGS": "Lines may not cross."
         },
+        "crosshairs": {
+            "PLACE_CLOUD": "Click on an empty cell to place a cloud. Clouds cannot be larger than 2 hexes.",
+            "CLOUD_OCCUPIED": "There is already a cloud at {{cell}}.",
+            "CLOUD_TOO_BIG": "You cannot place a cloud at {{cell}}. Only clouds of size 2 are allowed. This cloud would be too big.",
+            "INITIAL_INSTRUCTIONS_one": "Select a plane to move, or enter a new plane on your starting edge. You must move/enter {{count}} plane this turn.",
+            "INITIAL_INSTRUCTIONS_other": "Select a plane to move, or enter a new plane on your starting edge. You must move/enter {{count}} planes this turn.",
+            "INITIAL_INSTRUCTIONS_NO_ENTRY_one": "Select a plane to move. You must move {{count}} plane this turn. Click on enemy planes if you think they can be shot down.",
+            "INITIAL_INSTRUCTIONS_NO_ENTRY_other": "Select a plane to move. You must move {{count}} planes this turn. Click on enemy planes if you think they can be shot down.",
+            "INITIAL_INSTRUCTIONS_MOVE_ONLY_one": "Select a plane to move. You must move {{count}} plane this turn.",
+            "INITIAL_INSTRUCTIONS_MOVE_ONLY_other": "Select a plane to move. You must move {{count}} planes this turn.",
+            "INITIAL_INSTRUCTIONS_ENTRY_ONLY_one": "Enter a plane on your starting edge. You must enter {{count}} plane this turn.",
+            "INITIAL_INSTRUCTIONS_ENTRY_ONLY_other": "Enter planes on your starting edge. You must enter {{count}} planes this turn.",
+            "PARTIAL_MOVE": "Continue selecting the move destination and direction.",
+            "PARTIAL_PLANE_MOVE": "Click where you want to climb (1 ahead) or level fly (2 ahead), or click the plane again to start a dive.",
+            "PARTIAL_PLANE_MOVE_NO_DIVE": "Click where you want to climb (1 ahead) or level fly (2 ahead).",
+            "PARTIAL_ENTRY": "Click an adjacent cell to choose which direction your plane will face.",
+            "PARTIAL_MOVEMENT": "Click an adjacent cell to choose which direction your plane will face after moving.",
+            "PARTIAL_DIVE": "Click where the plane should go: one cell ahead for a swoop, or click the plane itself for a power dive.",
+            "PARTIAL_DIVE_DIR": "Click an adjacent cell to choose which direction the plane will face after the maneuver.",
+            "DIVE_CONTINUE_OR_END": "Continue the dive (swoop ahead or power dive), or select another plane to end the dive.",
+            "NEED_MORE_PLANES_one": "You need to move/enter {{count}} more plane this turn. Select the next plane.",
+            "NEED_MORE_PLANES_other": "You need to move/enter {{count}} more planes this turn. Select the next plane.",
+            "NEED_MORE_PLANES_NO_ENTRY_one": "You need to move {{count}} more plane this turn. Select the next plane. Click on enemy planes if you think they can be shot down.",
+            "NEED_MORE_PLANES_NO_ENTRY_other": "You need to move {{count}} more planes this turn. Select the next plane. Click on enemy planes if you think they can be shot down.",
+            "INVALID_ENTRY_POSITION": "You can't enter a plane at {{cell}}, planes can only be entered on the highlighted starting edge.",
+            "CAN_SHOOT": "You can also click on an enemy plane to shoot it down.",
+            "MOVE_COMPLETE_CAN_SHOOT": "Move complete. You may shoot enemy planes or submit your move."
+        },
         "cubeo": {
             "BAD_MERGE": "You may only merge when you have at least three dice in the formation, and you may not remove a pinned die or a die that cannot be slid out of the formation.",
             "BAD_MOVE_standard": "When moving, the die must move its full distance (though it may backtrack at any point), end in a space that keeps the formation connected, and may not end where it started.",
@@ -4912,6 +4971,11 @@
             "KOMI_CHOICE": "Invoke pie to play first or accept playing as second player.",
             "OPPONENT_CONTROL": "You cannot place onto the empty intersection {{cell}}. It is controlled by the opponent."
         },
+        "plurality": {
+            "INITIAL_INSTRUCTIONS": "Place a group of three orthogonal stones on empty cells. It is invalid to make a 2x2 shape of stones of any color configuration. First place two friendly pieces, then one opponent piece.",
+            "TABOO": "Place a tromino (orthogonal group of three stones), without making an occupied 2x2 area. The next click will start a new tromino.",
+            "INCOMPLETE_TURN": "To complete the turn you need two friendly placements, then an opponent placement."
+        },
         "pods": {
             "INITIAL_INSTRUCTIONS": "Place a piece onto an empty space where you have more neighboring pieces, or select a piece to move around other pieces without passing through spaces controlled by the opponent.",
             "FIRST_MOVE_INSTRUCTIONS": "Place a piece onto any empty space on the board.",
@@ -5717,6 +5781,7 @@
             "INITIAL_INSTRUCTIONS_setup_one": "Create a chunk (two adjacent pieces) for each colour anywhere on the board ({{count}} piece remaining).",
             "INITIAL_INSTRUCTIONS_setup_other": "Create a chunk (two adjacent pieces) for each colour anywhere on the board ({{count}} pieces remaining).",
             "INVALID_COLOUR": "The requested colour ({{colour}}) is invalid.",
+            "MUST_CHOOSE": "You must choose which side to play. Click the appropriate button, or type 'swap' to play first or 'pass' to play second.",
             "PARTIAL": "Select where you want to place that piece.",
             "SETUP_CHUNKS": "The pieces you place must be adjacent to each other (one chunk per player).",
             "SETUP_TOOMANY": "You may only place one two-piece chunk for each player.",

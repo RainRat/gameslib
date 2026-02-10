@@ -67,7 +67,6 @@ export class AbandeGame extends GameBase {
             {
                 uid: "libre",
                 group: "board",
-                experimental: true,
             }
         ],
         categories: ["goal>score>eog", "mechanic>place", "mechanic>stack", "board>shape>rect", "board>shape>hex", "board>connect>rect", "board>connect>hex", "board>connect>snub", "components>simple>1per"],
@@ -148,12 +147,11 @@ export class AbandeGame extends GameBase {
         return this;
     }
 
-    private genHexBoard(): ModularBoard|undefined {
+    private genHexBoard(): void {
         if (this.variants.includes("libre")) {
             const hexes: IHexCoord[] = [...this.board.keys()].map(str => AbandeGame.uid2hexCoord(str));
             this.hexBoard = new ModularBoard({orientation: Orientation.POINTY, offset: 1, centres: hexes});
         }
-        return undefined;
     }
 
     private buildGraph(): AbandeGame {
@@ -222,7 +220,7 @@ export class AbandeGame extends GameBase {
         }
 
         // in libre, you can't move until 4 pieces are on the board
-        if (this.variants.includes("libre") && [...this.board.values()].flat().length > 4) {
+        if (this.variants.includes("libre") && [...this.board.values()].flat().length >= 4) {
             const playerPieces = [...this.board.entries()].filter(([,v]) => v[v.length - 1] === player).map(([k,v]) => [AbandeGame.uid2hexCoord(k), v] as [IHexCoord, playerID[]]).map(([k,v]) => [this.hexBoard!.getHexAtAxial(k.q, k.r)!, v] as [ModularHex, playerID[]]);
             for (const [hex, stack] of playerPieces) {
                 const neighbours = this.hexBoard!.neighbours(hex);
@@ -754,6 +752,8 @@ export class AbandeGame extends GameBase {
                 throw new Error("Unrecognized move format");
             }
         }
+
+        this.genHexBoard();
 
         // update currplayer
         this.lastmove = m;
