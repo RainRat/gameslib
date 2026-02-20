@@ -36,7 +36,7 @@ export class PluralityGame extends GameBase {
         uid: "plurality",
         playercounts: [2],
         version: "20260202",
-        dateAdded: "2026-02-02",
+        dateAdded: "2026-02-18",
         // i18next.t("apgames:descriptions.plurality")
         description: "apgames:descriptions.plurality",
         urls: ["https://boardgamegeek.com/boardgame/462846/plurality"],
@@ -54,13 +54,13 @@ export class PluralityGame extends GameBase {
                 apid: "9228bccd-a1bd-452b-b94f-d05380e6638f",
             },
         ],
-        categories: ["goal>area", "mechanic>place", "board>shape>rect"],
+        categories: ["goal>area", "mechanic>place", "board>shape>rect", "board>connect>rect"],
         variants: [
             { uid: "size-13", group: "board" },
             { uid: "#board", },
             { uid: "size-19", group: "board" },
         ],
-        flags: ["scores", "custom-buttons", "custom-colours", "experimental"]
+        flags: ["scores", "custom-buttons", "custom-colours"]
     };
 
     public coords2algebraic(x: number, y: number): string {
